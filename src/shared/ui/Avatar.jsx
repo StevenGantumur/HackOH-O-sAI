@@ -35,7 +35,7 @@ function hash(text) {
 function lookFor(id = '') {
   const [skin, hair, style, bg, shirt] = LOOKS[id] ?? (() => {
     const h = hash(id);
-    return [h % SKIN.length, (h >> 3) % HAIR.length, STYLES[(h >> 6) % STYLES.length], (h >> 9) % BG.length, (h >> 12) % SHIRT.length];
+    return [h % SKIN.length, (h >>> 3) % HAIR.length, STYLES[(h >>> 6) % STYLES.length], (h >>> 9) % BG.length, (h >>> 12) % SHIRT.length];
   })();
   return { skin: SKIN[skin], hair: HAIR[hair], style, bg: BG[bg], shirt: SHIRT[shirt] };
 }

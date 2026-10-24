@@ -7,6 +7,10 @@ import { Avatar } from '../shared/ui/Avatar.jsx';
 import { TeamUpButtons } from './TeamUpButtons.jsx';
 import { DemoProgress } from './DemoProgress.jsx';
 import { ConnectionInbox } from './ConnectionInbox.jsx';
+import { useAuth } from '../auth/AuthProvider.jsx';
+import { useAccountDirectory } from '../auth/AccountDirectoryProvider.jsx';
+import { isSamplePerson, peopleForDiscovery } from '../shared/accountPeople.js';
+import { href } from '../shared/router.js';
 
 // MOCK: Fictional cumulative history for design previews. Replace with database data later.
 const SAMPLE_POINTS = [
@@ -22,10 +26,11 @@ const SAMPLE_POINTS = [
 export function Team_Up() {
   const data = useData();
   const me = useMe();
+  const { profile } = useAuth();
+  const directory = useAccountDirectory();
   const [panel, setPanel] = useState(null);
   const [search, setSearch] = useState('');
-  // MOCK: Reuse the shared sample cast; this is not a live availability or matching query.
-  const people = data.users.filter((user) => user.type === 'student' && user.id !== me.id);
+  const people = peopleForDiscovery(data.users, profile.id);
   const results = people.filter((person) => person.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -40,21 +45,24 @@ export function Team_Up() {
             </div>
             <button type="button" className="btn btn-primary" onClick={() => setPanel('search')}><Icon name="search" size={18} /> Find a demo partner</button>
           </section>
+          {directory.error && <p role="alert">{directory.error} <button type="button" className="btn btn-ghost btn-sm" onClick={directory.reload}>Retry accounts</button></p>}
           <DemoProgress points={SAMPLE_POINTS} sample />
           <div className="teamup-practice-heading"><h2>A little practice, a little confidence.</h2><span>GO AT YOUR PACE</span></div>
           <TeamUpButtons onPractice={() => setPanel('practice')} onCategories={() => setPanel('categories')} />
+          <a className="teamup-muted" href="#/team-up/supabase">Developer: check Supabase connection</a>
         </div>
-        <ConnectionInbox key={me.id} people={people.slice(0, 3)} />
+        <ConnectionInbox key={me.id} people={people.filter(isSamplePerson).slice(0, 3)} />
       </div>
       {panel && (
-        <Modal title={panel === 'search' ? 'Find a demo partner' : panel === 'categories' ? 'Choose a practice category' : 'Volunteer scheduling challenge'} description="Design preview · sample content only. No invitations are sent or progress recorded." onClose={() => setPanel(null)}>
+        <Modal title={panel === 'search' ? 'Find a demo partner' : panel === 'categories' ? 'Choose a practice category' : 'Volunteer scheduling challenge'} description={panel === 'search' ? 'Registered accounts and clearly labeled fictional students. This list does not indicate who is online.' : 'Design preview · no invitations are sent or progress recorded.'} onClose={() => setPanel(null)}>
           {panel === 'search' ? (
             <div className="teamup-search-preview">
-              <label htmlFor="teamup-partner-search">Search sample students</label>
+              <label htmlFor="teamup-partner-search">Search people</label>
               <input id="teamup-partner-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by name…" />
               <div className="teamup-search-results">
-                {results.map((person) => <div key={person.id}><Avatar user={person} size={36} /><strong>{person.name}</strong><span>Sample student</span></div>)}
-                {!results.length && <p role="status">No sample students match that name.</p>}
+                {results.map((person) => <div key={person.id}><Avatar user={person} size={36} /><a href={href(`/people/${person.id}`)}>{person.name}</a><span>{isSamplePerson(person) ? 'Sample student' : 'Registered account'}</span><a className="btn btn-outline btn-sm" href={href('/messages', { person: person.id })}>Chat</a></div>)}
+                {!results.length && <p role="status">No people match that name.</p>}
+                <button className="btn btn-ghost btn-sm" type="button" disabled={directory.status === 'loading'} onClick={directory.reload}>{directory.status === 'loading' ? 'Loading accounts…' : 'Refresh registered accounts'}</button>
               </div>
             </div>
           ) : panel === 'categories' ? (

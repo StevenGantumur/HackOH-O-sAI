@@ -1,20 +1,21 @@
 import { useSyncExternalStore } from 'react';
 
-// MOCK: demo-user switching stands in for Supabase Auth (AGENTS.md §5.6). It is NOT access
-// control. The choice is kept per browser tab, so two windows can play the student and the
-// mentor side by side while sharing the same demo data.
+// MOCK: Sample-persona selection affects only demo project views, never Supabase Auth or
+// message access. The 'account' selection uses the verified account's own username/UUID.
+// Kept per tab so the fictional student and mentor can still be demonstrated side by side.
 
 const KEY = 'bridge-builder:demo-user';
 export const DEFAULT_USER_ID = 'u-riley';
+export const ACCOUNT_USER_ID = 'account';
 
 const listeners = new Set();
 let current = readSaved();
 
 function readSaved() {
   try {
-    return window.sessionStorage.getItem(KEY) || DEFAULT_USER_ID;
+    return window.sessionStorage.getItem(KEY) || ACCOUNT_USER_ID;
   } catch {
-    return DEFAULT_USER_ID;
+    return ACCOUNT_USER_ID;
   }
 }
 
