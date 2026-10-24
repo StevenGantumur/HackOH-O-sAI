@@ -52,14 +52,16 @@ To play the student and the mentor at the same time, open two windows. The demo 
 
 **Site authentication:** Every app page requires a verified Supabase account, confirmed email, and completed username. Signed-out visitors see the sign-in screen, including when opening a deep link. Choose **Create an account** for email, username, and password fields; confirm the email and return to sign in. Passwords are handled only by Supabase Auth. `account_profiles` stores the matching Auth ID, username, and email, with owner-only access. Existing accounts without a username finish setup before entering. The account menu provides Sign out; switching sample personas does not change your real account. Authentication is per browser tab.
 
-**Live direct messages:** After signing in, choose **Chat with** a student in Team Up and choose a fictional sample messaging persona once. The other student must sign in in another tab and link their own persona. **Send message** inserts a private `direct_messages` row and displays it only after Supabase confirms the save. Refresh loads replies and the latest 100 messages. Project channels, requests, graph data, and lobby presence still use their labeled mocks. Database security tests used temporary fixtures in rolled-back transactions; a complete email-confirmed signup and two-user browser send still require test accounts.
+**Real accounts alongside fictional students:** The app defaults to your registered username. Team Up and Messages show other registered users alongside clearly labeled fictional samples. Your account menu includes **Use my account** plus sample-persona switching for project demos; it never signs you in as another registered person. Your Profile page shows your own username, private email, major, skills, and goals. Username/major edits and skill/goal changes save to Supabase. Other users see public profile fields only; email remains owner-only.
+
+**Live direct messages:** In Team Up, choose **Find a demo partner**, then **Chat** beside a registered username. Messages reference `account_profiles` directly; no sample-persona linking is required. **Send message** waits for Supabase to confirm the save, then displays it. Refresh loads replies and the latest 100 messages. Fictional students open a labeled local conversation preview; their messages are not delivered. Existing legacy persona links and message data are retained. Project channels, requests, graph data, and lobby presence still use their labeled mocks.
 
 For local setup, copy `.env.example` to `.env`, set `VITE_SUPABASE_URL` to the project API origin (`https://<project-ref>.supabase.co`), and set `VITE_SUPABASE_PUBLISHABLE_KEY` (preferred) or `VITE_SUPABASE_ANON_KEY` (legacy). Restart `npm run dev` after changing environment variables. `src/shared/supabase.js` validates the config, provides a single lazy Supabase client, and performs the read-only check. No secret/service-role key belongs in these variables.
 
 | Area | Status |
 |---|---|
 | UI, routing, permissions, async pending and error states | Built |
-| Data | Direct chats use Supabase `direct_messages` + `teamup_accounts` with RLS. Project data remains in the `// MOCK:` browser store |
+| Data | Direct chats use `direct_messages` linked to `account_profiles`; public people use `account_directory`, all under RLS. Project data remains in the `// MOCK:` browser store |
 | Sign-in | All pages require Supabase Auth and username setup. The sample-persona switcher controls only mock project views |
 | Role coach | Canned replies (`src/agents/mockCoach.js`) that follow the help ladder. No model is called |
 | File storage | Uploads up to 2 MB are kept in the browser |

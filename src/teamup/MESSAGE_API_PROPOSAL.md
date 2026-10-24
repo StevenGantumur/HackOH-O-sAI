@@ -1,21 +1,25 @@
-# Direct-message API — approved implementation
+# Direct messages and account profiles — approved implementation
 
-Arnav confirmed team approval before the schema was applied, on the local `30-minute-demo` branch.
+Work remains on `30-minute-demo`. Arnav requested real registered identities alongside the fictional sample cast.
 
-## Database
+## Identity and profile schema
 
-`teamup_accounts` links a Supabase Auth UUID to one unique fictional persona and sample display name. It grants no project permissions. Authenticated users can read the sample directory and insert only their own account link. Links cannot be changed from the browser.
+Supabase Auth manages credentials. `account_profiles` stores the Auth UUID, username, and private email. Only the owner can read the private profile. `account_directory` exposes the UUID, username, major, skills, and goals to signed-in users; it contains no email or passwords. A private trigger keeps usernames synchronized. Owners can edit only their own public profile details. The invoker-security `update_my_account_profile` RPC commits username and major edits atomically under RLS.
 
-`direct_messages` stores a generated UUID, author and recipient account UUIDs, nonblank content up to 2,000 characters, and a server timestamp. Both participants can read; only the authenticated author can insert. No anonymous access, UPDATE, or DELETE is granted. Clients cannot insert generated message IDs or timestamps. SQL is saved in `direct-message-schema.sql` and applied as the remote `teamup_private_direct_messages` migration.
+`direct_messages.author_id` and `recipient_id` reference `account_profiles.id`. Message rows and participant UUIDs were preserved when the foreign keys were migrated away from `teamup_accounts`. That legacy table is retained; the UI no longer claims fictional personas and new browser inserts into it are disabled.
 
-## Send flow
+## User flow
 
-Send message → validate draft → verify Supabase Auth user → POST /rest/v1/direct_messages → await confirmed row → append message and clear draft. Errors preserve the draft. A pending state and submission guard prevent duplicate clicks.
+The default display identity is the logged-in username and UUID. Team Up search and the Messages people list show registered accounts first, alongside labeled fictional students. Other registered accounts can be viewed or messaged, never impersonated through the sample switcher. Use my account returns from a sample project persona to the signed-in identity.
 
-`directMessages.js` implements inserts and recent-history reads. Global `src/auth/AuthProvider.jsx` and `AuthPage.jsx` handle signup, sign-in, email confirmation, username setup, and sign-out for the whole site. `MessagingAuth.jsx` links the sample persona after authentication. `LiveConversation.jsx` connects the composer. `LiveChatList.jsx` loads conversation participants under RLS. Auth sessions use sessionStorage so different tabs can sign in as different accounts. The global demo-user switcher is not authentication.
+Registered chat: Send message → validate draft → verify Auth → POST /rest/v1/direct_messages → await confirmed row → append and clear draft. A failed write preserves the draft. Both participant IDs and server timestamps appear with usernames resolved from the public directory. Replies load using Refresh messages; latest 100 messages are displayed.
 
-## Verification and limits
+Fictional chat: SampleConversation uses only tab-local preview history, labeled not delivered. Incoming request examples remain fictional; no requests are fabricated for registered users.
 
-The build and unit tests are run locally. Database RLS tests insert temporary fixtures and roll back: author and recipient can read, a third user cannot, forged authors are blocked, and system fields cannot be supplied by the client. Supabase security advisors reported no notices.
+## Implementation and verification
 
-Email confirmation is enabled. An end-to-end browser send requires two email-confirmed test accounts; no real emails are sent by the automated checks. Replies use Refresh messages; Realtime, challenge progress, invitations, and lobby presence are not migrated by this change. The live history displays the latest 100 messages; older-history pagination is not implemented.
+SQL: `src/auth/account-directory-schema.sql` and `src/auth/account-profile-update.sql`, layered on the previous schema files. `AccountDirectoryProvider.jsx` mirrors public account fields into the sample workspace; it never mirrors email. Real profiles save through Supabase, while sample profiles and projects retain their local demo behavior.
+
+Database transaction tests verify automatic directory entries, private email isolation, real messaging without persona links, participant-only reads, blocked sender spoofing, owner-only profile edits, and atomic rollback for invalid edits. Test fixtures are rolled back. Complete browser signup/sign-in and a two-user exchange still require the users' confirmed accounts.
+
+Existing Supabase advisory: leaked-password protection is disabled. See https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection. No Auth security settings were changed by this feature.

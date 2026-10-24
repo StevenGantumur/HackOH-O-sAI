@@ -5,7 +5,7 @@ export async function sendDirectMessage({ recipientId, content }, client = getSu
   const text = content?.trim();
   if (!text || text.length > 2000) throw new Error('Write a message between 1 and 2,000 characters.');
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(recipientId ?? '')) {
-    throw new Error('This student needs a linked Supabase account before you can send a message.');
+    throw new Error('Choose a registered account to send a real message.');
   }
 
   const { data: auth, error: authError } = await client.auth.getUser();

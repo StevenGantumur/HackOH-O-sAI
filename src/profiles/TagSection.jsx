@@ -3,16 +3,22 @@ import { store, useMe } from '../shared/store.js';
 import { useAction } from '../shared/useAction.js';
 import { Spinner } from '../shared/ui/bits.jsx';
 import { Icon } from '../shared/ui/Icon.jsx';
+import { useAuth } from '../auth/AuthProvider.jsx';
+import { useAccountDirectory } from '../auth/AccountDirectoryProvider.jsx';
 
 // Skills or goals, editable by their owner. Matching on the Missions and Projects pages uses
 // these, so editing them changes recommendations right away.
-export function TagSection({ title, field, values, editable, hint, suggestions = [] }) {
+export function TagSection({ title, field, values, editable, hint, suggestions = [], userId }) {
   const me = useMe();
+  const { profile } = useAuth();
+  const directory = useAccountDirectory();
   const inputId = useId();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(values);
   const [input, setInput] = useState('');
-  const save = useAction(() => store.updateProfile({ userId: me.id, [field]: draft }), { success: `${title} saved` });
+  const save = useAction(() => (userId ?? me.id) === profile.id
+    ? directory.updateDetails({ [field]: draft })
+    : store.updateProfile({ userId: userId ?? me.id, [field]: draft }), { success: `${title} saved` });
 
   const has = (value) => draft.some((v) => v.toLowerCase() === value.toLowerCase());
   const add = (value) => {
