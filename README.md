@@ -34,6 +34,16 @@ Other things to show:
 - **Coach**: everyone gets a coach for their role, like a software engineering coach for the builder on the bus-stop app. All coaches on a project share the board, the channels and a one-line note about each person, but never the chats themselves. Hints unlock only after you share an attempt. Try "Just do it for me", then "Here’s my attempt…".
 - Switch to **Leila Haddad** to add tasks or post missions, and to see the leader coach flag unassigned and overdue work.
 
+### Try working together before joining a team (planned — Arnav)
+
+The matching feature lets two students discover compatibility through a **30-minute collaborative challenge linked to an actual project**, then decide whether to keep working together. It goes beyond matching listed skills: beginners can contribute through testing, design, research, or communication as well as code.
+
+For example, a fictional nonprofit needs a volunteer scheduling tool. Before committing to six weeks, two students work through a small scheduling problem together: one writes code while the other identifies conflicting requirements or tests edge cases.
+
+**Planned demo:** Two students complete the challenge, give each other specific feedback, and both opt to turn their temporary collaboration into a project team. Participation in the trial does not itself join either student to the team. Peer feedback is separate from mentor review of mission work.
+
+This flow is specified in [§6.8 of the project rules](Bridge_Builder_AGENTS_merged.md#68-try-working-together--experience-based-teammate-matching); it is not implemented yet. Existing matching in `src/discovery/score.js` ranks projects and missions by skills and goals. New challenge, feedback, and team-conversion persistence contracts still need team approval.
+
 To play the student and the mentor at the same time, open two windows. The demo user is chosen per tab, and the data syncs between them. **Reset demo data** in the sidebar restores the sample data.
 
 ### What's real and what's mocked
