@@ -42,7 +42,7 @@ test('message history filters both participants and reverses the latest page int
 test('unauthenticated, invalid recipient, self-message, and empty message do not write', async () => {
   const client = fakeClient({ user: null });
   await assert.rejects(sendDirectMessage({ recipientId: recipient, content: 'Hello' }, client), /Sign in/);
-  await assert.rejects(sendDirectMessage({ recipientId: 'u-leila', content: 'Hello' }, client), /linked Supabase account/);
+  await assert.rejects(sendDirectMessage({ recipientId: 'u-leila', content: 'Hello' }, client), /registered account/);
   await assert.rejects(sendDirectMessage({ recipientId: author, content: 'Hello' }, fakeClient()), /another student/);
   await assert.rejects(sendDirectMessage({ recipientId: recipient, content: ' ' }, client), /Write a message/);
   assert.equal(client.calls.length, 0);

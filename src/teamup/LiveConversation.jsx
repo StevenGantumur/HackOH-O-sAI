@@ -18,16 +18,16 @@ export function LiveConversation({ person, account, client }) {
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const sending = useRef(false);
   const log = useRef(null);
-  const me = { id: account.demo_user_id, name: account.display_name };
-  const isSelf = account.demo_user_id === person.id;
+  const me = { id: account.id, name: account.username };
+  const isSelf = account.id === person.id;
 
   useEffect(() => {
     let active = true;
     async function load() {
       setLoading(true); setError('');
       try {
-        const { data, error: profileError } = await client.from('teamup_accounts')
-          .select('id, demo_user_id, display_name').eq('demo_user_id', person.id).maybeSingle();
+        const { data, error: profileError } = await client.from('account_directory')
+          .select('id, username').eq('id', person.id).maybeSingle();
         if (profileError) throw new Error('Could not find the recipient. Please retry.');
         if (!active) return;
         setRecipient(data);
@@ -67,7 +67,7 @@ export function LiveConversation({ person, account, client }) {
         <a className="btn btn-ghost btn-sm" href={href('/team-up')}>Back to Team Up</a>
       </header>
       <p className="composer-locked">Messages are saved in Supabase. Refresh to load replies. The demo lobby still uses the local browser preview.</p>
-      {loading ? <p role="status">Loading conversation…</p> : isSelf ? <p className="composer-locked">This is your linked sample persona. Choose a different student in Team Up.</p> : !recipient && <p className="composer-locked">{person.name} has not linked a messaging account yet. They need to sign in and choose this sample persona before you can message them.</p>}
+      {loading ? <p role="status">Loading conversation…</p> : isSelf ? <p className="composer-locked">This is your account. Choose someone else in Team Up.</p> : !recipient && <p className="composer-locked">This account is unavailable. Refresh the registered-user directory and try again.</p>}
       {error && <p role="alert">{error}</p>}
       <div className="teamup-request-actions"><button className="btn btn-ghost btn-sm" type="button" disabled={pending || loading} onClick={() => setRevision((value) => value + 1)}>Refresh messages</button></div>
       <div ref={log} className="channel-messages" role="log" aria-label={`Messages with ${person.name}`}>

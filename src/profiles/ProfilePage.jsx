@@ -15,14 +15,21 @@ import { ContributionCalendar } from './ContributionCalendar.jsx';
 import { DemoProgress } from '../teamup/DemoProgress.jsx';
 import '../workspace/workspace.css';
 import './profiles.css';
+import { useAuth } from '../auth/AuthProvider.jsx';
+import { isSamplePerson } from '../shared/accountPeople.js';
+import { AccountProfileEditor } from './AccountProfileEditor.jsx';
+import { useAccountDirectory } from '../auth/AccountDirectoryProvider.jsx';
 
 export function ProfilePage({ userId }) {
   const data = useData();
   const me = useMe();
-  const user = userId ? getUser(data, userId) : me;
-  if (!user) return <NotFoundPage />;
+  const auth = useAuth();
+  const directory = useAccountDirectory();
+  const user = getUser(data, userId ?? auth.profile.id);
+  if (!user) return directory.status === 'loading' ? <Page title="Profile"><p role="status">Loading profile…</p></Page> : <NotFoundPage />;
 
-  const isMe = user.id === me.id;
+  const isOwner = user.id === auth.profile.id;
+  const isMe = isOwner || (isSamplePerson(user) && user.id === me.id);
   const name = isMe ? 'You' : firstName(user.name);
   const profile = getProfile(data, user.id) ?? { skills: [], goals: [], resume: { education: [], experience: [], projects: [] } };
   const evidence = evidenceFor(data, user.id, store.isSeeded);
@@ -45,7 +52,7 @@ export function ProfilePage({ userId }) {
               <p className="muted">{profileHeadline(profile, user)}</p>
               <div className="profile-badges">
                 <UserTypeBadge type={user.type} />
-                <SampleBadge>Sample person</SampleBadge>
+                {isSamplePerson(user) ? <SampleBadge>Sample person</SampleBadge> : <span className="tag">Registered account</span>}
               </div>
             </div>
             <dl className="profile-stats">
@@ -64,6 +71,7 @@ export function ProfilePage({ userId }) {
             </dl>
           </section>
 
+<<<<<<< HEAD
           <ContributionCalendar key={`${user.id}-${me.id}`} data={data} user={user} viewerId={me.id} />
 
           <div className="profile-journey">
@@ -76,6 +84,9 @@ export function ProfilePage({ userId }) {
               emptyAction={isMe ? <a className="btn btn-quiet btn-sm" href={href('/team-up')}>Explore Team Up</a> : null}
             />
           </div>
+=======
+          {isOwner && (directory.status === 'ready' ? <AccountProfileEditor /> : <p role={directory.error ? 'alert' : 'status'}>{directory.error || 'Loading account details…'}{directory.error && <button className="btn btn-ghost btn-sm" type="button" onClick={directory.reload}>Retry</button>}</p>)}
+>>>>>>> origin/30-minute-demo
 
           <section className="section">
             <div className="section-head">
@@ -154,6 +165,7 @@ export function ProfilePage({ userId }) {
             title="Skills"
             field="skills"
             values={profile.skills}
+            userId={user.id}
             editable={isMe}
             hint={isMe ? 'Missions and projects that need these are matched to you first.' : undefined}
             suggestions={skillPool}
@@ -163,6 +175,7 @@ export function ProfilePage({ userId }) {
             title="Goals"
             field="goals"
             values={profile.goals}
+            userId={user.id}
             editable={isMe}
             hint={isMe ? 'Matched against project tags.' : undefined}
             suggestions={goalPool}

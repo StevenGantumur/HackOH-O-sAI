@@ -4,6 +4,21 @@ import { checkSupabaseConnection, readSupabaseConfig } from './supabase.js';
 
 const env = { VITE_SUPABASE_URL: 'https://example.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test' };
 
+test('configuration identifies missing fields without exposing configured values', () => {
+  assert.throws(() => readSupabaseConfig({ VITE_SUPABASE_URL: env.VITE_SUPABASE_URL }), /Set VITE_SUPABASE_PUBLISHABLE_KEY/);
+  assert.throws(() => readSupabaseConfig({ VITE_SUPABASE_ANON_KEY: 'private-test-value' }), (error) => {
+    assert.match(error.message, /Set VITE_SUPABASE_URL/);
+    assert.match(error.message, /\.env\.example is only a template/);
+    assert.ok(!error.message.includes('private-test-value'));
+    return true;
+  });
+});
+
+test('a whitespace-only publishable value allows a configured legacy anon key', () => {
+  const anon = `header.${Buffer.from(JSON.stringify({ role: 'anon' })).toString('base64url')}.signature`;
+  assert.equal(readSupabaseConfig({ ...env, VITE_SUPABASE_PUBLISHABLE_KEY: '  ', VITE_SUPABASE_ANON_KEY: ` ${anon} ` }).key, anon);
+});
+
 test('Supabase configuration rejects missing values, dashboard URLs, and privileged keys', () => {
   assert.throws(() => readSupabaseConfig({}), /Set VITE/);
   assert.throws(() => readSupabaseConfig({ ...env, VITE_SUPABASE_URL: 'https://supabase.com/dashboard/project/example' }), /dashboard/);

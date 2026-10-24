@@ -7,10 +7,15 @@ import { ChannelsLayout } from './ChannelsLayout.jsx';
 import { DirectChatPreview } from '../../teamup/DirectChatPreview.jsx';
 import { MessagingAuth } from '../../teamup/MessagingAuth.jsx';
 import { LiveChatList } from '../../teamup/LiveChatList.jsx';
+import { useAuth } from '../../auth/AuthProvider.jsx';
+import { useAccountDirectory } from '../../auth/AccountDirectoryProvider.jsx';
+import { isSamplePerson, peopleForDiscovery } from '../../shared/accountPeople.js';
 
 export function MessagesPage() {
   const data = useData();
   const me = useMe();
+  const { profile } = useAuth();
+  const directory = useAccountDirectory();
   const { query } = useRoute();
   const personId = query.get('person');
   const person = getUser(data, personId);
@@ -22,10 +27,11 @@ export function MessagesPage() {
   return (
     <Page title="Messages" subtitle={personId ? 'Plan your next collaboration.' : 'Channels for the projects you’re on.'} bodyClassName="page-body-fill">
       {!personId && <MessagingAuth me={me}>{({ account, client }) => <LiveChatList account={account} client={client} />}</MessagingAuth>}
+      {!personId && <section className="teamup-demo-chats" aria-label="Start a conversation"><h2>People <span>Registered accounts and fictional samples</span></h2>{peopleForDiscovery(data.users, profile.id).map((person) => <a key={person.id} href={href('/messages', { person: person.id })}><strong>{person.name}</strong><span>{isSamplePerson(person) ? 'Sample · preview chat' : 'Registered · direct message'}</span></a>)}<button className="btn btn-ghost btn-sm" type="button" disabled={directory.status === 'loading'} onClick={directory.reload}>Refresh people</button>{directory.error && <p role="alert">{directory.error}</p>}</section>}
       {personId ? (
         person ? (
           <DirectChatPreview key={`${me.id}:${person.id}`} person={person} me={me} />
-        ) : (
+        ) : directory.status === 'loading' ? <p role="status">Loading registered people…</p> : (
           <EmptyState icon="mail" title="Conversation unavailable" action={<a className="btn btn-primary" href={href('/team-up')}>Back to Team Up</a>}>
             Choose another student from Team Up to open a chat preview.
           </EmptyState>

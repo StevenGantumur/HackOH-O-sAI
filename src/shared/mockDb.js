@@ -272,6 +272,27 @@ export function createMockDb({
     // Seeded records are sample data; the UI must label them (AGENTS.md §5.3).
     isSeeded: (id) => seedIds.has(id),
 
+    // MOCK: Mirror only public account names/skills into the sample workspace so real
+    // accounts can use demo projects. Auth, private email, and messages stay in Supabase.
+    registerAccounts(accounts) {
+      let changed = false;
+      const users = [...data.users];
+      const profiles = [...data.profiles];
+      for (const account of accounts) {
+        if (!/^[0-9a-f-]{36}$/i.test(account.id ?? '') || !account.username || seedIds.has(account.id)) continue;
+        const user = { id: account.id, name: account.username, type: 'student' };
+        const index = users.findIndex((person) => person.id === user.id);
+        if (index < 0) { users.push(user); changed = true; }
+        else if (JSON.stringify(users[index]) !== JSON.stringify(user)) { users[index] = user; changed = true; }
+        const profileIndex = profiles.findIndex((profile) => profile.user_id === user.id);
+        const current = profiles[profileIndex];
+        const profile = { user_id: user.id, major: account.major ?? current?.major ?? '', skills: account.skills ?? current?.skills ?? [], goals: account.goals ?? current?.goals ?? [], resume: current?.resume ?? { education: [], experience: [], projects: [] } };
+        if (profileIndex < 0) { profiles.push(profile); changed = true; }
+        else if (JSON.stringify(current) !== JSON.stringify(profile)) { profiles[profileIndex] = profile; changed = true; }
+      }
+      if (changed) commit({ users, profiles });
+    },
+
     readBlob(ref) {
       if (seed.blobs && ref in seed.blobs) return { kind: 'text', data: seed.blobs[ref] };
       const raw = read(blobKey(ref));
@@ -284,6 +305,9 @@ export function createMockDb({
     },
 
     reset() {
+      const registered = data.users.filter((person) => !seedIds.has(person.id) && /^[0-9a-f-]{36}$/i.test(person.id));
+      const registeredIds = new Set(registered.map((person) => person.id));
+      const accountProfiles = data.profiles.filter((profile) => registeredIds.has(profile.user_id));
       if (storage) {
         const ours = [];
         for (let i = 0; i < storage.length; i += 1) {
@@ -293,6 +317,7 @@ export function createMockDb({
         ours.forEach(remove);
       }
       data = fresh();
+      data = { ...data, users: [...data.users, ...registered], profiles: [...data.profiles, ...accountProfiles] };
       try {
         write(key, JSON.stringify(data));
       } catch {

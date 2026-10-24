@@ -110,9 +110,10 @@ export function Sidebar({ path, query, open, onClose }) {
 
         <div className="demo-note">
           <p>
-            <strong>Demo mode.</strong> All people and projects are sample data
+            <strong>Sample projects.</strong> Project work is demo data
             {store.persistent ? ', saved in this browser.' : '. Changes reset when you reload.'}
           </p>
+          <p>Registered profiles and direct messages use Supabase. Fictional people are labeled as samples.</p>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setResetOpen(true)}>
             <Icon name="refresh" size={16} />
             Reset demo data
