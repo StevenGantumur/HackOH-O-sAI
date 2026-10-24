@@ -11,6 +11,8 @@ import { store, useData, useMe } from '../shared/store.js';
 import { Avatar } from '../shared/ui/Avatar.jsx';
 import { EmptyState, RoleBadge, SampleBadge, UserTypeBadge } from '../shared/ui/bits.jsx';
 import { TagSection } from './TagSection.jsx';
+import { ContributionCalendar } from './ContributionCalendar.jsx';
+import { DemoProgress } from '../teamup/DemoProgress.jsx';
 import '../workspace/workspace.css';
 import './profiles.css';
 
@@ -61,6 +63,19 @@ export function ProfilePage({ userId }) {
               </div>
             </dl>
           </section>
+
+          <ContributionCalendar key={`${user.id}-${me.id}`} data={data} user={user} viewerId={me.id} />
+
+          <div className="profile-journey">
+            {/* Team Up's chart is reusable, but its fictional preview points are not
+                user completion records. No such records exist in the shared store yet. */}
+            <DemoProgress
+              key={user.id}
+              historyUnavailable
+              subjectName={isMe ? null : user.name}
+              emptyAction={isMe ? <a className="btn btn-quiet btn-sm" href={href('/team-up')}>Explore Team Up</a> : null}
+            />
+          </div>
 
           <section className="section">
             <div className="section-head">
