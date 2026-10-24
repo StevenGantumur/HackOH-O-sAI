@@ -12,7 +12,7 @@ Arnav confirmed team approval before the schema was applied, on the local `30-mi
 
 Send message → validate draft → verify Supabase Auth user → POST /rest/v1/direct_messages → await confirmed row → append message and clear draft. Errors preserve the draft. A pending state and submission guard prevent duplicate clicks.
 
-`directMessages.js` implements inserts and recent-history reads. `MessagingAuth.jsx` provides email/password signup and sign-in, confirmation guidance, sample persona linking, and sign-out. `LiveConversation.jsx` connects the composer. `LiveChatList.jsx` loads conversation participants under RLS. Auth sessions use sessionStorage so different tabs can sign in as different accounts. The global demo-user switcher is not authentication.
+`directMessages.js` implements inserts and recent-history reads. Global `src/auth/AuthProvider.jsx` and `AuthPage.jsx` handle signup, sign-in, email confirmation, username setup, and sign-out for the whole site. `MessagingAuth.jsx` links the sample persona after authentication. `LiveConversation.jsx` connects the composer. `LiveChatList.jsx` loads conversation participants under RLS. Auth sessions use sessionStorage so different tabs can sign in as different accounts. The global demo-user switcher is not authentication.
 
 ## Verification and limits
 

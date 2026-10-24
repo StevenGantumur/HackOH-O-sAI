@@ -17,6 +17,8 @@ import { CoachPage } from '../agents/CoachPage.jsx';
 import { ProfilePage } from '../profiles/ProfilePage.jsx';
 import { Team_Up } from '../teamup/Team_Up.jsx';
 import { SupabaseConnectionPage } from '../teamup/SupabaseConnectionPage.jsx';
+import { AuthProvider, useAuth } from '../auth/AuthProvider.jsx';
+import { AuthPage } from '../auth/AuthPage.jsx';
 import './shell.css';
 
 const ROUTES = [
@@ -42,7 +44,7 @@ function renderRoute(path) {
   return <NotFoundPage />;
 }
 
-export default function App() {
+function AuthenticatedApp() {
   const route = useRoute();
   const [navOpen, setNavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -80,4 +82,13 @@ export default function App() {
       </ShellContext.Provider>
     </ToastProvider>
   );
+}
+
+function AuthBoundary() {
+  const { status, user } = useAuth();
+  return status === 'authenticated' ? <AuthenticatedApp key={user.id} /> : <AuthPage />;
+}
+
+export default function App() {
+  return <AuthProvider><AuthBoundary /></AuthProvider>;
 }

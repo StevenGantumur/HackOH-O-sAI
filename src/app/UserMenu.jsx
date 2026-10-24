@@ -9,6 +9,7 @@ import { Icon } from '../shared/ui/Icon.jsx';
 import { Popover } from '../shared/ui/Popover.jsx';
 import { useToast } from '../shared/ui/Toast.jsx';
 import { ResetDemoModal } from './ResetDemoModal.jsx';
+import { useAuth } from '../auth/AuthProvider.jsx';
 
 // The people a demo usually needs, listed first: student, industry lead, faculty mentor, student leader.
 const CAST = ['u-riley', 'u-grace', 'u-elena', 'u-leila'];
@@ -17,6 +18,8 @@ export function UserMenu() {
   const data = useData();
   const me = useMe();
   const toast = useToast();
+  const { profile, signOut } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const people = [...CAST.map((id) => getUser(data, id)).filter(Boolean), ...data.users.filter((u) => !CAST.includes(u.id))];
 
@@ -27,7 +30,7 @@ export function UserMenu() {
         label="Account and demo users"
         panelClassName="user-panel"
         trigger={(props) => (
-          <button {...props} className="user-trigger" aria-label={`Signed in as ${me.name} (demo). Switch demo user`}>
+          <button {...props} className="user-trigger" aria-label={`Account ${profile.username}. Sample persona ${me.name}`}>
             <Avatar user={me} size={46} />
           </button>
         )}
@@ -37,8 +40,8 @@ export function UserMenu() {
             <div className="user-head">
               <Avatar user={me} size={40} />
               <div>
-                <p className="user-name">{me.name}</p>
-                <p className="user-meta">{USER_TYPE_META[me.type].label}, demo account</p>
+                <p className="user-name">{profile.username}</p>
+                <p className="user-meta">{USER_TYPE_META[me.type].label} sample persona: {me.name}</p>
               </div>
             </div>
             <a className="menu-item" href="#/profile" onClick={close}>
@@ -46,8 +49,8 @@ export function UserMenu() {
               Your profile
             </a>
             <div className="menu-sep" />
-            <p className="menu-label">Switch demo user</p>
-            <p className="menu-note">For demos only. This is not an Ohio State sign-in and does not grant access.</p>
+            <p className="menu-label">Switch sample persona</p>
+            <p className="menu-note">Sample project data only. This does not change your authenticated account or message access.</p>
             <div className="user-list" role="group" aria-label="Demo users">
               {people.map((person) => {
                 const current = person.id === me.id;
@@ -75,6 +78,16 @@ export function UserMenu() {
               })}
             </div>
             <div className="menu-sep" />
+            <button
+              type="button" className="menu-item" disabled={signingOut}
+              onClick={async () => {
+                setSigningOut(true);
+                try { await signOut(); }
+                catch (error) { toast({ tone: 'error', title: error.message }); setSigningOut(false); }
+              }}
+            >
+              {signingOut ? 'Signing out…' : 'Sign out'}
+            </button>
             <button
               type="button"
               className="menu-item"
