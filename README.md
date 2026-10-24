@@ -48,11 +48,17 @@ To play the student and the mentor at the same time, open two windows. The demo 
 
 ### What's real and what's mocked
 
+**Live Supabase connection check:** Open `#/team-up/supabase` (or the developer link at the bottom of Team Up). It calls the project's public `GET /auth/v1/settings` endpoint with the browser key and shows email/sign-up availability. This verifies the live Auth connection; it does not sign in, persist app data, or test database policies.
+
+**Live direct messages:** In Team Up, choose **Chat with** a student. Sign in to Supabase or create an account (confirm the email, then return to sign in). Choose a fictional sample messaging persona once. The other student must sign in in another tab and link their own persona. **Send message** inserts a private `direct_messages` row and displays it only after Supabase confirms the save. Refresh loads replies and the latest 100 messages. Auth is per tab; switching the global sample-user menu does not change the authenticated messaging account. Project channels, requests, graph data, and lobby presence still use their labeled mocks. The database security tests used temporary fixtures in a rolled-back transaction; a complete email-confirmed signup and two-user browser send still require test accounts.
+
+For local setup, copy `.env.example` to `.env`, set `VITE_SUPABASE_URL` to the project API origin (`https://<project-ref>.supabase.co`), and set `VITE_SUPABASE_PUBLISHABLE_KEY` (preferred) or `VITE_SUPABASE_ANON_KEY` (legacy). Restart `npm run dev` after changing environment variables. `src/shared/supabase.js` validates the config, provides a single lazy Supabase client, and performs the read-only check. No secret/service-role key belongs in these variables.
+
 | Area | Status |
 |---|---|
 | UI, routing, permissions, async pending and error states | Built |
-| Data | `// MOCK:` in-browser store (`src/shared/mockDb.js`), saved to localStorage. Not Supabase yet, because the schema still needs team approval |
-| Sign-in | Demo-user switcher, clearly labelled. Not access control |
+| Data | Direct chats use Supabase `direct_messages` + `teamup_accounts` with RLS. Project data remains in the `// MOCK:` browser store |
+| Sign-in | Direct chats use Supabase Auth. The rest of the app uses the clearly labeled demo-user switcher |
 | Role coach | Canned replies (`src/agents/mockCoach.js`) that follow the help ladder. No model is called |
 | File storage | Uploads up to 2 MB are kept in the browser |
 | Notifications | In-app only, derived from activity. No email or push |

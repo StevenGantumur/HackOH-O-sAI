@@ -16,11 +16,13 @@ import { MessagesPage } from '../workspace/channels/MessagesPage.jsx';
 import { CoachPage } from '../agents/CoachPage.jsx';
 import { ProfilePage } from '../profiles/ProfilePage.jsx';
 import { Team_Up } from '../teamup/Team_Up.jsx';
+import { SupabaseConnectionPage } from '../teamup/SupabaseConnectionPage.jsx';
 import './shell.css';
 
 const ROUTES = [
   ['/', () => <HomePage />],
   ['/team-up', () => <Team_Up />],
+  ['/team-up/supabase', () => <SupabaseConnectionPage />],
   ['/missions', () => <MissionsPage />],
   ['/projects', () => <ProjectsPage />],
   ['/projects/:id', ({ id }) => <ProjectPage projectId={id} />],

@@ -10,6 +10,15 @@
 .teamup-eyebrow { color: var(--c-brand); font-size: 11px; font-weight: 700; letter-spacing: .12em; margin-bottom: 10px; }
 .teamup-progress h2 { font-size: clamp(20px, 3vw, 26px); letter-spacing: -.035em; margin-bottom: 6px; }
 .teamup-muted { color: var(--c-text-3); font-size: 13px; }
+.teamup-auth-form { display: grid; gap: 12px; max-width: 460px; padding: 24px; border: 1px solid var(--c-line); border-radius: var(--radius); }
+.teamup-auth-form h2 { font-size: 20px; }
+.teamup-auth-form p { font-size: 13px; color: var(--c-text-3); }
+.teamup-auth-form input, .teamup-auth-form select { width: 100%; padding: 12px; border: 1px solid var(--c-line-strong); border-radius: var(--radius-sm); }
+.teamup-live-account { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; font-size: 13px; }
+.teamup-live-channel { min-height: 420px; max-height: 75vh; border: 1px solid var(--c-line); border-radius: var(--radius); overflow: hidden; }
+.teamup-live-channel .composer-locked { flex-shrink: 0; }
+.teamup-connection-details { display: grid; gap: 18px; margin-top: 20px; overflow-wrap: anywhere; }
+.teamup-connection-details p + p { margin-top: 10px; }
 .teamup-sample { padding: 5px 10px; border-radius: 20px; background: var(--c-subtle); color: var(--c-text-2); font-size: 12px; }
 .teamup-stats { display: flex; flex-wrap: wrap; gap: 40px; margin: 26px 0; }
 .teamup-stats > div { display: flex; flex-direction: column; }

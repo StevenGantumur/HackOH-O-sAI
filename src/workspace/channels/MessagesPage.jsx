@@ -5,7 +5,8 @@ import { useData, useMe } from '../../shared/store.js';
 import { EmptyState } from '../../shared/ui/bits.jsx';
 import { ChannelsLayout } from './ChannelsLayout.jsx';
 import { DirectChatPreview } from '../../teamup/DirectChatPreview.jsx';
-import { DemoChatList } from '../../teamup/DemoChatList.jsx';
+import { MessagingAuth } from '../../teamup/MessagingAuth.jsx';
+import { LiveChatList } from '../../teamup/LiveChatList.jsx';
 
 export function MessagesPage() {
   const data = useData();
@@ -20,9 +21,9 @@ export function MessagesPage() {
 
   return (
     <Page title="Messages" subtitle={personId ? 'Plan your next collaboration.' : 'Channels for the projects you’re on.'} bodyClassName="page-body-fill">
-      <DemoChatList data={data} me={me} activePersonId={personId} />
+      {!personId && <MessagingAuth me={me}>{({ account, client }) => <LiveChatList account={account} client={client} />}</MessagingAuth>}
       {personId ? (
-        person && person.id !== me.id ? (
+        person ? (
           <DirectChatPreview key={`${me.id}:${person.id}`} person={person} me={me} />
         ) : (
           <EmptyState icon="mail" title="Conversation unavailable" action={<a className="btn btn-primary" href={href('/team-up')}>Back to Team Up</a>}>
