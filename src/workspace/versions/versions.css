@@ -1,0 +1,141 @@
+.preview-text {
+  max-height: 420px;
+  margin: 0;
+  padding: 16px 18px;
+  overflow: auto;
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  background: #fbfbfa;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.preview-image {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  background: repeating-conic-gradient(#f4f4f2 0% 25%, #ffffff 0% 50%) 50% / 18px 18px;
+}
+
+.preview-image img {
+  max-height: 420px;
+  border-radius: 6px;
+}
+
+.preview-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  border: 1.5px dashed var(--c-line-strong);
+  border-radius: 12px;
+  color: var(--c-text-2);
+  font-size: 13.5px;
+}
+
+.preview-empty svg {
+  flex: none;
+  color: var(--c-text-3);
+}
+
+.version-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 14px;
+  font-size: 12.5px;
+}
+
+.version-facts dt {
+  color: var(--c-text-3);
+}
+
+.version-facts dd {
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.compare-side {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.compare-pane {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.compare-pane figcaption {
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.diff {
+  display: grid;
+  gap: 10px;
+}
+
+.diff-stats {
+  font-size: 13px;
+  color: var(--c-text-3);
+}
+
+.diff-count-add {
+  color: #1e7a44;
+  font-weight: 700;
+}
+
+.diff-count-del {
+  color: #c2333d;
+  font-weight: 700;
+}
+
+.diff-body {
+  overflow: auto;
+  max-height: 460px;
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.diff-line {
+  display: grid;
+  grid-template-columns: 38px 38px 20px minmax(0, 1fr);
+}
+
+.diff-num {
+  padding-right: 8px;
+  color: #a1a5ac;
+  text-align: right;
+  user-select: none;
+}
+
+.diff-sign {
+  text-align: center;
+  user-select: none;
+}
+
+.diff-line code {
+  padding-right: 12px;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.diff-add {
+  background: #e9f7ed;
+  color: #14532d;
+}
+
+.diff-del {
+  background: #fdeeee;
+  color: #7f1d1d;
+}

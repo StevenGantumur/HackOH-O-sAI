@@ -1,0 +1,20 @@
+# Decisions
+
+One line each, newest last (AGENTS.md §7). Lines marked **needs team OK** were proposed while
+building the first UI pass and are not agreed contracts yet.
+
+- 2026-10-24 14:00 EDT — Tooling: Vite 8 + React 19, plain CSS with tokens in `src/shared/ui/ui.css`; no Tailwind or UI kit, no router library (hash routing in `src/shared/router.js`). **needs team OK**
+- 2026-10-24 14:00 EDT — `.npmrc` sets `legacy-peer-deps=true`: npm 10 (bundled with Node 20) crashes resolving Vite 8's optional `@vitejs/devtools` peer. All required peers are direct dependencies.
+- 2026-10-24 14:00 EDT — Data: every read/write goes through the `// MOCK:` store in `src/shared/mockDb.js` (localStorage), shaped like §5.1, until the schema is approved. Swap it for supabase-js behind the same function names. It mimics RLS checks but is not security.
+- 2026-10-24 14:00 EDT — Seed lives in `seed/seed.js` (JS, not JSON) with dates relative to an anchor; the mock store shifts them on first load so "due in 2 days" stays true. "Reset demo data" reloads it.
+- 2026-10-24 14:00 EDT — A Bridge Mission is a Task with `estimated_minutes` set (§5.1 "extend Task"). Claiming one as a non-member creates a Membership with the task's role, then sets `owner_id`, `status`, `claimed_at`.
+- 2026-10-24 14:00 EDT — OPEN QUESTION: the seed and UI use two Task fields that §5.1 doesn't list: `role` (needed for the board labels and the §6.3 role filter) and `review_criteria` (needed by §5.3 "review criteria"). **needs team OK**, then add them to AGENTS.md §5.1.
+- 2026-10-24 14:00 EDT — `Feedback.rubric` shape: `{ criteria: [{ label, rating: not_yet|partly|meets }], improve, outcome: approved|changes_requested }`. Approve sets the task to done; request changes sends it back to in_progress. **needs team OK**
+- 2026-10-24 14:00 EDT — Reviewers are the project's LEADER or MENTOR members, never the author. Review is two steps (Start review → post feedback) so `submitted`, `under_review` and `reviewed` stay visible and distinct from `done`.
+- 2026-10-24 14:00 EDT — Evidence cards are derived from Task + Submission + Feedback + Version; only approved work produces one. No stored EvidenceCard, no points or badges.
+- 2026-10-24 14:00 EDT — Board has four columns (To-Do, In Progress, In Review, Done) to match the status enum; the design mock had three. Difficulty takes the place of the mock's priority flag, which isn't in the data model.
+- 2026-10-24 14:00 EDT — Task status changes only through actions (claim, start, submit, review); no drag-and-drop, so "done" always means a reviewer approved it.
+- 2026-10-24 14:00 EDT — Role coach runs in MOCK mode (`src/agents/mockCoach.js`) with canned replies that follow the help ladder and refuse "just do it". Real mode needs a server-side function and route (§5.5, TBD); `generateAgentReply` throws until then.
+- 2026-10-24 14:00 EDT — Demo-user switching is per browser tab (sessionStorage), so two windows can play student and mentor side by side; data syncs between tabs. Labelled in the UI as not a real sign-in.
+- 2026-10-24 14:18 EDT — Branding (Steven's request): Ohio State Scarlet `#BA0C2F` and Gray `#A7B1B7` replace the indigo palette; Gray is decoration only because it fails text contrast. The logo is the team name "sAI" in Alfa Slab One (SIL OFL, self-hosted in `src/shared/ui/fonts/` with its license) with "Bridge Builder" as a caption; favicons are PNGs rendered from that font. No Ohio State logos or marks are used, and the sidebar says the app is a HackOHI/O student project, not an official Ohio State service.
+- 2026-10-24 14:18 EDT — Seed content is now Ohio State-flavored (North Campus, Ohio Union, High Street, Fisher, "Buckeyes"); `SEED_VERSION` bumped to 2 so browsers holding older demo data reload it. People and organizations stay fictional, and no facts are invented about real buildings or bus stops.
