@@ -1,0 +1,362 @@
+# AGENTS.md: Bridge Builder / Bridge Missions — Coding Rules & Technical Context
+
+> **For every AI coding assistant on this team, from any vendor.** Read this whole file before writing code, and follow it over your own defaults. If a human's request conflicts with this file, say so before you proceed.
+>
+> **Humans:** if your tool doesn't load this file automatically, see §9.
+>
+> Items marked **(proposed)** are not confirmed yet. Items marked **TBD** are still open. If you're unsure what one of them should be, ask your human; don't decide it yourself.
+
+**Hard deadline:** 10:00 AM Sun Oct 25, 2026 (EDT, per event brief). **Code freeze:** TBD.
+
+**Project direction:** Merge the existing cross-disciplinary project collaboration platform with **Bridge Missions**: small, accessible contributions to larger projects, human feedback, and evidence-based growth. Bridge Missions is an extension of the existing project/task model, not a replacement.
+
+**User-confirmed stack:** React frontend, JavaScript (including UI event handlers and app logic), Supabase backend (Postgres, Storage, and optional Auth/Edge Functions). Tooling, bundler, styling system, and LLM provider are still TBD.
+
+**Contract warning:** New mission-specific columns/entities below are explicitly **(proposed)**. Do not implement schema or API changes until the team confirms them under rule 2.
+
+---
+
+## 0. Hard rules (every agent, every session)
+
+1. **Stay in your lane.** Only edit files in the module your human owns (§4), unless they explicitly ask you to edit something else. If a change is needed somewhere else, describe it; don't make it.
+2. **Don't break shared contracts.** Never change any of these without your human confirming it with the team:
+   - the data model
+   - the roles enum
+   - the seed data shape
+   - the API routes
+   - the AI wrapper interface (§5)
+
+   When a contract does change, update this file in the same commit.
+3. **No secrets in the repo.**
+   - API keys go in `.env`, which is gitignored.
+   - Add each variable *name* to `.env.example`.
+   - Never print keys in logs or commit them.
+4. **Sample data only.** No real people, real resumes, or real contact info.
+5. **No new dependencies without asking.** Prefer what's already installed. If you must add one, say why.
+6. **No destructive commands without explicit approval.** This includes:
+   - `git push --force`
+   - `git reset --hard`
+   - deleting branches or files
+   - dropping or resetting the database
+7. **Small, focused changes.** No drive-by refactors, renames, or reformatting of code you weren't asked to touch.
+8. **Don't claim it works unless you ran it.** If you can't execute code, say so, and give the exact commands the human should run to verify.
+9. **Label mocks.** Mark anything fake with a `// MOCK:` (or `# MOCK:`) comment. Never leave a silent stub that looks finished.
+10. **Simple and demoable beats robust.**
+    - Mock auth, email/notifications, real resume parsing, and anything else the demo won't show.
+    - Hardcode where it saves time, then label it per rule 9.
+11. **State your assumptions** before you build on them.
+12. **Explain non-obvious choices** in 1–2 sentences, so your human can explain them to others.
+13. **Never weaken the in-product agent rules (§6.3).** Don't add a "just give me the answer" mode, even as a debug shortcut that might ship.
+
+---
+
+## 1. What we're building (technical summary)
+
+A web app where students, industry partners, and faculty create cross-disciplinary projects; students can start with approachable **Bridge Missions** (short project tasks), collaborate with others, receive real human feedback, and build evidence-backed profiles. Existing project collaboration remains core. It has five modules:
+
+| Module | What it does |
+|---|---|
+| **Profiles** | Users (student / industry / faculty) with skills, goals, and resume stored as structured metadata. |
+| **Discovery** | Project recommendations based on skills and goals, plus search. |
+| **Workspace** | Per-project space with version control for **any file type** (not just code), tasks with owners and deadlines, Slack-style channels, and fixed roles assigned to members. |
+| **Role Agents** | An AI agent per member, configured by role, that **coaches instead of completing the work**. |
+| **Bridge Missions & Growth** (proposed module) | Browse small beginner-friendly contributions to projects; claim tasks, submit artifacts, receive human review, and display verifiable contribution evidence. |
+
+**Suggested demo flow (proposed; team approval required):** A student chooses skills and time available → discovers a recommended project / short Bridge Mission → joins the project and claims a task → submits an artifact or link → a seeded mentor/teammate gives structured feedback → the student sees an evidence card linked to the actual work. Each transition shown as real should persist in Supabase. If review is simulated, label it clearly as seeded/sample feedback.
+
+**North-star product principle:** Small contributions. Real connections. Proven growth. Prioritize one reliable end-to-end flow over broad functionality.
+
+---
+
+## 2. Stack & setup
+
+**Stack:**
+- **Frontend (confirmed):** React, with **JavaScript** (`.js` / `.jsx`) for components, application logic, and event handlers. Do not switch to TypeScript or Next.js without team approval.
+- **Backend (confirmed):** Supabase. Use its Postgres database, Storage for project artifacts, and optionally Auth / Edge Functions where needed.
+- **Database / file storage (confirmed):** Supabase Postgres + Supabase Storage.
+- **Client integration (proposed):** `@supabase/supabase-js` through one shared client module; request dependency approval if it is not already installed.
+- **Styling / build tool / hosting:** TBD; use whatever the existing repo has. Do not assume Tailwind, shadcn/ui, Vite, or Vercel are installed.
+- **LLM provider(s) for role agents:** TBD. Must sit behind the single wrapper (§5.4) and execute server-side, never with a provider secret in the browser.
+
+**Setup:**
+- **Repo:** TBD
+- **Install:** `TBD`
+- **Run dev server:** `TBD`
+- **Seed database:** `TBD`
+- **Required env vars:** see `.env.example`
+- **Proposed public client variables:** `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` **only if using Vite**; adjust prefix to the actual bundler after confirmation. Supabase publishable/anon keys may appear in the client **only with correctly enforced RLS**. Never expose the service-role key.
+- **LLM secrets:** keep only in server-side secrets / Supabase Edge Functions. Never use a frontend `VITE_` variable for LLM API keys.
+
+---
+
+## 3. Repo structure (proposed; finalize once the stack is picked)
+
+```
+/
+├── AGENTS.md            ← this file
+├── .env.example
+├── seed/                ← shared sample data (single source for everyone)
+├── src/
+│   ├── profiles/
+│   ├── discovery/
+│   ├── workspace/
+│   │   ├── versions/    ← file versioning
+│   │   ├── tasks/
+│   │   └── channels/
+│   ├── missions/          ← (proposed) mission discovery, claim, submit, review
+│   ├── growth/            ← (proposed) evidence cards derived from reviewed work
+│   ├── agents/
+│   │   ├── llm.*        ← the ONLY place that calls an LLM provider
+│   │   └── prompts/     ← one system prompt file per role
+│   └── shared/          ← data contracts, Supabase client, shared utilities
+└── DECISIONS.md         ← short log of notable decisions & pivots
+```
+
+---
+
+## 4. Ownership
+
+| Module | Owner | Notes |
+|---|---|---|
+| Profiles | TBD | |
+| Discovery | TBD | |
+| Workspace | TBD | |
+| Role Agents | TBD | |
+| Missions & Growth (proposed) | TBD | Coordinates with Workspace + Profiles owners; needs contract sign-off |
+| `shared/` + `seed/` | TBD | Changes need team sign-off (rule 2) |
+
+---
+
+## 5. Shared contracts
+
+### 5.1 Data model (proposed)
+
+```
+User          id, name, type: "student" | "industry" | "faculty"
+Profile       user_id, major, skills: string[], goals: string[], resume: { education[], experience[], projects[] }
+Project       id, owner_id, title, description, tags: string[], needed_roles: Role[], needed_skills: string[], status
+Membership    user_id, project_id, role: Role, joined_at
+Task          id, project_id, title, description, owner_id, deadline, status: "todo" | "in_progress" | "review" | "done"
+File          id, project_id, name, current_version_id
+Version       id, file_id, parent_version_id?, author_id, task_id?, message, storage_ref, mime_type, size, created_at
+Channel       id, project_id, name
+Message       id, channel_id, author_id, content, created_at
+AgentMessage  id, project_id, user_id, role: Role, sender: "user" | "agent", content, created_at
+
+# Proposed Bridge Missions extensions — DO NOT APPLY UNTIL TEAM CONFIRMS:
+# Prefer extending Task over creating a separate duplicate Mission table.
+Task (add)    estimated_minutes?, difficulty?, required_skills?: string[], deliverable_instructions?, claimed_at?
+Submission    id, task_id, author_id, file_id?, version_id?, external_url?, note?, created_at, status
+Feedback      id, submission_id, reviewer_id, comments, rubric?: object, created_at
+# Evidence cards should preferably be derived from Task + Submission + Feedback + Version.
+# A separately stored EvidenceCard is optional and requires explicit contract approval.
+```
+
+### 5.2 Roles enum
+
+- **`LEADER`** (confirmed): the project creator by default.
+- **Proposed:** `RESEARCHER`, `DESIGNER`, `BUILDER`, `ANALYST`, `COMMUNICATIONS`, `MENTOR`.
+
+Roles are **hardcoded**. Users pick from this list; they can't create their own.
+
+### 5.3 Seed data
+
+- **Path:** `seed/` (format TBD)
+- **Contents:**
+  - 8–12 students across varied majors, not only CS
+  - 3–5 projects, posted by at least one student, one industry user, and one faculty user
+  - 1–2 mentors
+  - existing memberships, tasks, and a few versions, so the workspace isn't empty in the demo
+  - **(proposed)** 4–8 micro-missions across different disciplines (design, research, analysis, engineering, communication); include time estimate, beginner-friendly context, expected deliverable and review criteria
+  - **(proposed)** at least one sample submission and human feedback record for the demonstration; make seeded/sample status visible in UI
+
+Every module reads from the same seed data. Don't create a private copy.
+
+### 5.4 AI wrapper interface
+
+Teammates may use different LLM providers, so **all model calls go through one function**:
+
+```
+generateAgentReply({ role, userId, projectId, messages, context }) -> { content }
+```
+
+- The provider and model are chosen by env vars (e.g. `LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`). No provider SDK calls anywhere else.
+- `context` includes:
+  - the user's role
+  - their current task and its deadline
+  - for `LEADER`: the project's unassigned and overdue tasks
+- Provide a `// MOCK:` mode that returns canned coaching replies when no API key is set, so the demo never dies on a rate limit.
+
+### 5.5 API routes / Supabase operations
+
+**TBD.** Do not invent REST endpoints unless the selected architecture requires them. React can use approved Supabase client queries under RLS, while operations involving privileged actions or LLM keys must run server-side (e.g., Edge Functions). List approved database operations or `METHOD /path → purpose` here as built. No unapproved table writes or policies.
+
+### 5.6 Supabase safety and data access
+
+- Enable and verify **Row Level Security** for every browser-accessed table. Default to least privilege.
+- Restrict who can claim tasks, create submissions, upload files, post feedback, and see private project content. Reviewers must be authorized members/mentors, not arbitrary users.
+- Use Supabase Storage buckets and policies appropriate to sample project artifacts; never treat the public anon key as authorization.
+- Do not send service-role keys or LLM API keys to React. Use backend functions for privileged work.
+- Handle async UI actions with loading, success, error, and disabled states; do not show completion until Supabase confirms the write.
+- Avoid duplicate claims using database constraints / transactional server logic once the exact claim contract is agreed.
+- For mock login, prominently label demo-user switching and do not imply it provides real access control.
+
+---
+
+## 6. Feature implementation specs
+
+### 6.1 Version control (any file type)
+
+- **Uploads:** every upload creates a new `Version` with an author, a message, and a parent version. History is **append-only**; never delete or overwrite versions.
+- **Rollback:** creates a *new* version that copies the old content. Never rewind history.
+- **Text files:** show a line diff between versions.
+- **Binary files** (images, PDFs, CAD, etc.): show metadata and a side-by-side preview where possible. No diff is required.
+- **Contribution history:** every version is attributed to its author. Contribution history is queried from `Version` + `Task`, not stored separately.
+
+### 6.2 Discovery
+
+**Recommendations:**
+- Score each project by its overlap with the user:
+  - the user's `skills` vs. the project's `needed_skills`
+  - the user's `goals` vs. the project's `tags`
+- Return the top N, each with a human-readable **"why recommended"** reason (e.g. "Needs CAD; you listed SolidWorks").
+- No model training. Embeddings are optional and only if time allows.
+
+**Search:**
+- Filter by text, skill, role needed, and poster type (student / industry / faculty).
+
+### 6.3 Bridge Missions and human-reviewed proof (proposed)
+
+**Student journey:** discover → evaluate fit → join project/claim a small task → submit work → receive human feedback → see a contribution/evidence card.
+
+**Discovery and fit:** Keep existing project matching. Mission filters can add estimated time, difficulty, skills and role (all **proposed** until schema confirmed). Show a plain-language recommendation reason. Never imply ranking uses trained AI if it is just a rules-based score.
+
+**Task claiming:** If a mission is a Task, integrate with existing membership, owner, and status fields rather than create parallel ownership state. Require a confirmed persistence step and reflect conflicts accurately.
+
+**Submission:** Store file artifacts in Supabase Storage and append a Version, linked back to the Task where possible. For links or notes, get team approval for the Submission contract first. Clearly distinguish `submitted`, `under review`, and `reviewed` from `done`.
+
+**Review:** Feedback must come from an actual human action (or be clearly labeled seeded/demo feedback). Show who reviewed, what they commented on, and what needs improvement. **Never let AI fabricate mentor endorsements or certify work automatically.**
+
+**Evidence-backed growth:** Display a shareable-looking card with project name, task title, student contribution, artifact, author and human feedback (as available). Show provenance and sample/demo labels. Derive evidence from existing records rather than award meaningless gamification points. Public sharing is a stretch feature; do not leak private artifacts.
+
+**Future / stretch:** Human-approved AI Mission Architect that suggests small tasks from a larger project; cross-major teammate matching; office hours; notifications; external portfolio export. None should block the demo flow.
+
+### 6.4 Role agents (in-product behavior: must hold in code and prompts)
+
+**Core rule:** agents **coach; they don't complete assigned work.**
+
+**Help ladder.** The agent escalates only as far as needed:
+1. Ask a clarifying or guiding question.
+2. Point to the relevant concept or resource.
+3. Give a hint or partial example.
+4. Review the user's attempt and give specific feedback.
+5. Show a worked example of a *similar* problem, never the assigned one.
+
+**If the user asks it to "just do it":**
+- the agent declines briefly
+- then offers the next step on the ladder
+
+**Leader agent:**
+- prompts the leader to break the work into tasks with owners and deadlines
+- flags unassigned and overdue tasks
+- reminds the leader to review submitted versions
+- suggests actions, but **never** creates or assigns tasks itself
+
+**Where prompts live:**
+- one file per role in `src/agents/prompts/`
+- a shared base prompt that holds the coaching rules
+- role files only *add* to the base prompt; they never override it
+
+**Logging:** log every exchange to `AgentMessage`.
+
+---
+
+### 6.5 React / JavaScript implementation rules
+
+- Use functional React components and hooks, following conventions already in the repository.
+- Use JavaScript event handlers (`onClick`, `onChange`, `onSubmit`) for UI interactions; avoid direct DOM mutation when React state can manage it.
+- Always `preventDefault()` on forms where submission would otherwise reload the page. Validate required fields and show user-facing errors.
+- Centralize Supabase client setup; avoid creating clients inside render functions. Keep read/write logic understandable and avoid duplicating queries across views.
+- Provide explicit empty, loading, error, success, and permission-denied states for real flows.
+- Use accessible labels, keyboard-operable controls, appropriate contrast, and mobile-friendly layouts.
+- Do not imply a decorative button or inactive control is functional. Either wire it up or visibly mark it a demo/placeholder.
+- Do not add dependencies, change bundlers, or introduce a second backend without permission.
+
+### 6.6 Optional vibe-coding helpers (not runtime dependencies)
+
+- **Frontend design guidance:** improve visual hierarchy, responsive behavior and accessibility without changing the agreed functionality.
+- **React best-practices guidance:** help review component state, effects and performance; verify relevance to the selected React tooling.
+- **Playwright / browser testing agent:** click through the real demo journey, inspect errors, and test mobile viewport; use only if installed/approved.
+- **Supabase MCP / Context7 / GitHub MCP (optional):** helpful for schema inspection, documentation, and repository workflows, but require permission and least-privilege credentials. Never give agents production service-role secrets.
+- **Agent work split:** Product/architecture defines contracts; Frontend builds approved UI; Backend/Supabase implements approved access and persistence; QA checks the end-to-end demo. Respect module ownership.
+
+### 6.7 MVP acceptance test (proposed)
+
+1. A seeded demo student opens a recommended project and sees a short task and the reason it fits.
+2. The student joins/claims the task; the update persists to Supabase.
+3. The student submits a link or file and sees the task move to review; the artifact can be reopened.
+4. A seeded mentor/teammate uses the UI to post feedback (or the UI explicitly labels preseeded feedback as sample).
+5. The student's profile displays a contribution card linked to the underlying task/artifact and feedback.
+6. Page refresh does not silently erase real states; errors are visible and permission rules hold.
+
+If time runs short, finish **one** of these flows end to end before adding extra features.
+
+---
+
+## 7. Git workflow
+
+**Before you start:**
+- pull `main`
+- branch as `name/short-feature`, e.g. `sam/version-upload`
+
+**Commits:**
+- small and frequent
+- message format: `area: what changed`, e.g. `workspace: add rollback endpoint`
+- commit history is also our record of work done during the event, so commit often
+
+**Merging:**
+- merge to `main` often
+- **`main` must always run**
+- never force-push `main`
+
+**Logging:**
+- record notable decisions and pivots in `DECISIONS.md`, one line each with the time
+
+---
+
+## 8. Definition of done
+
+A change is done only when:
+- [ ] It runs locally without errors.
+- [ ] It works against the shared seed data.
+- [ ] It has no secrets or real personal data.
+- [ ] Any mocks are labeled.
+- [ ] Any contract changes are reflected in this file.
+- [ ] The agent has told its human **what changed, which files changed, and how to test it.**
+- [ ] React handlers provide correct pending/error states for asynchronous Supabase writes.
+- [ ] Any exposed Supabase data is protected by appropriate RLS; no service-role or LLM secrets ship to the client.
+- [ ] Seeded feedback and mock AI responses are visibly identified; real feedback is never fabricated.
+- [ ] Mission/growth schema changes, if any, received team sign-off.
+
+---
+
+## 9. Rules by agent type
+
+**Agentic tools that edit files and run commands** (e.g. Claude Code, OpenAI Codex, Cursor agent, GitHub Copilot agent, Gemini CLI):
+- Follow §0 strictly, especially rules 1, 6, and 8.
+- Run the app or tests before reporting success.
+- Show a summary of changed files at the end of each task.
+
+**Chat assistants with no repo access** (e.g. ChatGPT, Claude.ai, Gemini in the browser):
+- You can't see the repo. Ask the human to paste the relevant files and this AGENTS.md. Never guess at file contents.
+- Return **complete files or clearly marked diffs**, with the file path, so the human can apply them safely.
+- Say plainly that you couldn't run the code (rule 8).
+
+**Inline autocomplete** (e.g. Copilot completions):
+- These tools won't read this file reliably.
+- The human applying a suggestion is responsible for checking it against §0.
+
+**Getting your tool to load this file:**
+- Many coding agents read `AGENTS.md` at the repo root automatically.
+- If yours doesn't, point its own instructions file at this one, e.g. `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, or `.cursor/rules`. Check your tool's docs for the exact name.
+- Otherwise, paste this file at the start of each session.
