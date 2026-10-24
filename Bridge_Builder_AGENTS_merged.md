@@ -10,6 +10,8 @@
 
 **Project direction:** Merge the existing cross-disciplinary project collaboration platform with **Bridge Missions**: small, accessible contributions to larger projects, human feedback, and evidence-based growth. Bridge Missions is an extension of the existing project/task model, not a replacement.
 
+**User-confirmed matching direction (Arnav):** **“Try working together” before joining a team.** Two students try a 30-minute collaborative challenge related to an actual project, exchange specific peer feedback, and then choose whether to continue together as a project team. Compatibility comes from the shared experience rather than listed-skill matching. Beginners can contribute through testing, design, research, or communication as well as code. This confirms product direction; new persistence contracts remain proposed until team sign-off under rule 2.
+
 **User-confirmed stack:** React frontend, JavaScript (including UI event handlers and app logic), Supabase backend (Postgres, Storage, and optional Auth/Edge Functions). Tooling, bundler, styling system, and LLM provider are still TBD.
 
 **Contract warning:** New mission-specific columns/entities below are explicitly **(proposed)**. Do not implement schema or API changes until the team confirms them under rule 2.
@@ -58,6 +60,7 @@ A web app where students, industry partners, and faculty create cross-disciplina
 |---|---|
 | **Profiles** | Users (student / industry / faculty) with skills, goals, and resume stored as structured metadata. |
 | **Discovery** | Project recommendations based on skills and goals, plus search. |
+| **Try Working Together / Matching** | Project-linked 30-minute challenges for two students to experience collaboration, exchange peer feedback, and optionally form a team (§6.8). |
 | **Workspace** | Per-project space with version control for **any file type** (not just code), tasks with owners and deadlines, Slack-style channels, and fixed roles assigned to members. |
 | **Role Agents** | An AI agent per member, configured by role, that **coaches instead of completing the work**. |
 | **Bridge Missions & Growth** (proposed module) | Browse small beginner-friendly contributions to projects; claim tasks, submit artifacts, receive human review, and display verifiable contribution evidence. |
@@ -120,6 +123,7 @@ A web app where students, industry partners, and faculty create cross-disciplina
 |---|---|---|
 | Profiles | TBD | |
 | Discovery | TBD | |
+| Try Working Together / Matching | Arnav | Feature scope: §6.8; coordinate with Discovery, Workspace, Profiles, and shared-data owners before cross-module or contract changes. File ownership boundaries remain TBD. |
 | Workspace | TBD | |
 | Role Agents | TBD | |
 | Missions & Growth (proposed) | TBD | Coordinates with Workspace + Profiles owners; needs contract sign-off |
@@ -151,6 +155,8 @@ Feedback      id, submission_id, reviewer_id, comments, rubric?: object, created
 # Evidence cards should preferably be derived from Task + Submission + Feedback + Version.
 # A separately stored EvidenceCard is optional and requires explicit contract approval.
 ```
+
+**Try Working Together contract boundary (§6.8):** Challenge definitions, temporary participant access, a shared attempt/artifact, peer feedback, continuation decisions, and team conversion need a team-approved persistence design. Their entity names, fields, statuses, operations, and access policies are **proposed / TBD**, not approved by this document. Reuse existing Project, Task, Version, and Membership records where appropriate; do not silently treat a trial participant as a committed project member or repurpose mentor-review Feedback as peer feedback. No schema, seed-shape, role, or API changes until rule 2 sign-off.
 
 ### 5.2 Roles enum
 
@@ -225,6 +231,8 @@ generateAgentReply({ role, userId, projectId, messages, context }) -> { content 
 **Search:**
 - Filter by text, skill, role needed, and poster type (student / industry / faculty).
 
+**Matching distinction:** The existing skill/goal score recommends projects and missions. Arnav's user-to-user matching feature uses a shared 30-minute challenge (§6.8); listed skills must not be presented as proof of interpersonal compatibility. Existing project discovery remains available alongside the trial flow.
+
 ### 6.3 Bridge Missions and human-reviewed proof (proposed)
 
 **Student journey:** discover → evaluate fit → join project/claim a small task → submit work → receive human feedback → see a contribution/evidence card.
@@ -239,7 +247,7 @@ generateAgentReply({ role, userId, projectId, messages, context }) -> { content 
 
 **Evidence-backed growth:** Display a shareable-looking card with project name, task title, student contribution, artifact, author and human feedback (as available). Show provenance and sample/demo labels. Derive evidence from existing records rather than award meaningless gamification points. Public sharing is a stretch feature; do not leak private artifacts.
 
-**Future / stretch:** Human-approved AI Mission Architect that suggests small tasks from a larger project; cross-major teammate matching; office hours; notifications; external portfolio export. None should block the demo flow.
+**Future / stretch:** Human-approved AI Mission Architect that suggests small tasks from a larger project; office hours; notifications; external portfolio export. None should block the demo flow. Experience-based teammate matching is now a separately scoped feature (§6.8), rather than only a stretch idea.
 
 ### 6.4 Role agents (in-product behavior: must hold in code and prompts)
 
@@ -300,6 +308,39 @@ generateAgentReply({ role, userId, projectId, messages, context }) -> { content 
 6. Page refresh does not silently erase real states; errors are visible and permission rules hold.
 
 If time runs short, finish **one** of these flows end to end before adding extra features.
+
+---
+
+### 6.8 Try Working Together — experience-based teammate matching
+
+**Owner:** Arnav. **Product direction:** user-confirmed. **New shared contracts / persistence implementation:** proposed, requires team sign-off.
+
+**Purpose:** Let students discover how they work together before committing to a project team. Offer a **30-minute collaborative challenge related to an actual project**, followed by specific peer feedback and an optional decision to continue together. Do not infer compatibility solely from listed skills, award an unsupported compatibility score, or require coding to participate.
+
+**Student journey:** choose a project-linked challenge → two students enter a temporary collaboration → work through the challenge for 30 minutes → record their contribution and exchange specific feedback → each chooses whether to continue → form/join the project team when both choose to continue and the project's membership permissions allow it.
+
+**Example:** A nonprofit needs a volunteer scheduling tool. Before committing to six weeks of project work, two students try a small scheduling problem together. One may write code while the other identifies conflicting requirements or tests edge cases. Design sketches, research findings, and clear explanations are also valid contributions. Use a fictional nonprofit and fictional students in the demo.
+
+**Challenge and collaboration requirements:**
+- Show the linked project, the small problem, expected output, and the 30-minute timebox before starting. Keep the challenge achievable within that session rather than asking students to finish the full project.
+- Give both students meaningful ways to contribute across coding, testing, design, research, and communication. Do not equate experience level or code volume with collaboration quality.
+- Keep temporary participation distinct from joining the project team. The trial must not silently create a long-term Membership or expose unrelated private project content.
+- Let students record or reopen the shared result and identify each person's contribution. Any timer, shared editing, or persistence behavior shown as real must work; visibly label simulated behavior.
+- How students pair up, invitation/acceptance mechanics, timer expiry, and incomplete/abandoned sessions are **TBD**. Do not invent these contracts during implementation.
+
+**Peer feedback:** Both participants give specific feedback grounded in the session: what the other person contributed, what helped the collaboration, and what could improve. Keep this separate from mentor approval of a Bridge Mission. AI must not fabricate peer comments, endorsements, or a compatibility verdict. Any seeded feedback must be visibly labeled sample/demo.
+
+**Continue together:** Continuing is optional for each student. Convert the temporary collaboration into a project team only after both opt in, using approved membership operations and project permissions. A decline must not force either person onto a team. Preserve the challenge result and feedback according to the approved access policy; visibility, retention, and the exact conversion operation remain **TBD**.
+
+**Demo moment / acceptance flow:**
+1. Two fictional students open a challenge linked to the nonprofit's scheduling-tool project and see its 30-minute scope.
+2. They collaborate on a small scheduling problem, with visible contributions such as code plus conflicting requirements or edge-case tests.
+3. They complete the challenge and can reopen the result.
+4. Each posts specific peer feedback through a human action; both can see the feedback they are authorized to view.
+5. Both choose to keep working together and the temporary collaboration becomes a project team through the approved membership flow.
+6. Real writes survive refresh and show pending, error, and success states. A walkthrough that shortens the 30-minute session or simulates a second participant must clearly label that behavior as a demo.
+
+**Implementation boundary:** This section specifies the intended feature, not an existing implementation. Follow §0 ownership and shared-contract rules, §5.6 access requirements, and §6.5 React/accessibility rules. Keep the existing project/mission demo working while implementing this separate journey.
 
 ---
 
