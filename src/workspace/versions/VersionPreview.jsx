@@ -2,6 +2,7 @@ import { formatBytes, timeAgo } from '../../shared/format.js';
 import { href } from '../../shared/router.js';
 import { getFile, getUser, membershipOf, versionNumber } from '../../shared/selectors.js';
 import { store, useData, useMe } from '../../shared/store.js';
+import { useAction } from '../../shared/useAction.js';
 import { Modal } from '../../shared/ui/Dialog.jsx';
 import { Icon } from '../../shared/ui/Icon.jsx';
 import { diffLines, diffStats, isImageMime } from './diff.js';
@@ -23,7 +24,7 @@ export function VersionPreview({ version }) {
       <div className="preview-empty">
         <Icon name="file" size={22} />
         <p>
-          <strong>No preview for this sample file.</strong> The demo keeps only its details ({version.mime_type}, {formatBytes(version.size)}).
+          <strong>File contents unavailable.</strong> {store.isSeeded(version.id) ? 'This sample contains metadata only.' : 'The contents are not available in this browser.'} Preview and download are unavailable ({version.mime_type}, {formatBytes(version.size)}).
         </p>
       </div>
     );
@@ -51,9 +52,7 @@ export function VersionPreview({ version }) {
 
 export function DownloadButton({ version, name, className = 'btn btn-quiet btn-sm' }) {
   const blob = store.readBlob(version.storage_ref);
-  if (!blob) return null;
-
-  async function download() {
+  const download = useAction(async () => {
     const file = blob.kind === 'text' ? new Blob([blob.data], { type: version.mime_type }) : await (await fetch(blob.data)).blob();
     const url = URL.createObjectURL(file);
     const link = document.createElement('a');
@@ -63,12 +62,13 @@ export function DownloadButton({ version, name, className = 'btn btn-quiet btn-s
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
+  });
+  if (!blob) return null;
 
   return (
-    <button type="button" className={className} onClick={download}>
+    <button type="button" className={className} onClick={download.run} disabled={download.pending}>
       <Icon name="download" size={16} />
-      Download
+      {download.pending ? 'Preparing…' : 'Download'}
     </button>
   );
 }
@@ -88,7 +88,7 @@ export function VersionModal({ version, onClose }) {
       footer={
         <>
           {isMember && (
-            <a className="btn btn-ghost" href={href(`/projects/${file.project_id}`, { tab: 'files', file: file.id })} onClick={onClose}>
+            <a className="btn btn-ghost" href={href(`/projects/${file.project_id}`, { tab: 'files', file: file.id, fileView: 'history' })} onClick={onClose}>
               <Icon name="history" size={18} />
               Version history
             </a>
