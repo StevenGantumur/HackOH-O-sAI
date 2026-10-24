@@ -11,6 +11,7 @@ import { isMac, useShell } from './shellContext.js';
 
 const NAV = [
   { path: '/', label: 'Home', icon: 'home' },
+  { path: '/team-up', label: 'Team Up', icon: 'users' },
   { path: '/missions', label: 'Missions', icon: 'target' },
   { path: '/projects', label: 'Projects', icon: 'folder' },
   { path: '/tasks', label: 'Tasks', icon: 'tasks', activeIcon: 'tasksSolid' },
