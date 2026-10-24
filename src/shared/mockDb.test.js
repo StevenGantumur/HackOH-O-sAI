@@ -133,6 +133,23 @@ test('a full disk rejects the write and leaves data unchanged', async () => {
   assert.equal(taskIn(db, 't-b1').owner_id, null);
 });
 
+test('team notes: one line per person, members only, removable only by its subject', async () => {
+  const db = makeDb();
+  const note = (content) => ({ userId: 'u-riley', projectId: 'p-compost', role: 'RESEARCHER', content });
+  await assert.rejects(db.setTeamNote({ ...note('x'), projectId: 'p-clinic' }), (err) => err.code === 'forbidden');
+  await assert.rejects(db.setTeamNote({ ...note('x'), role: 'DESIGNER' }), (err) => err.code === 'forbidden');
+
+  await db.setTeamNote(note('Riley is drafting the survey.'));
+  const latest = await db.setTeamNote(note('Riley is revising the survey.'));
+  const rileys = db.getSnapshot().teamNotes.filter((n) => n.author_id === 'u-riley' && n.project_id === 'p-compost');
+  assert.deepEqual(rileys.map((n) => n.content), ['Riley is revising the survey.']);
+  assert.equal(db.isSeeded(latest.id), false);
+
+  await db.removeTeamNote({ userId: 'u-riley', projectId: 'p-compost' });
+  await assert.rejects(db.removeTeamNote({ userId: 'u-riley', projectId: 'p-compost' }), (err) => err.code === 'not_found');
+  assert.ok(db.getSnapshot().teamNotes.some((n) => n.author_id === 'u-amara' && n.project_id === 'p-compost'), 'other people’s notes stay');
+});
+
 test('only seed records are flagged as sample data', async () => {
   const db = makeDb();
   assert.equal(db.isSeeded('fb-c1'), true);

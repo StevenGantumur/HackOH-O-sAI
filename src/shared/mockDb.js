@@ -23,6 +23,7 @@ export const TABLES = [
   'channels',
   'messages',
   'agentMessages',
+  'teamNotes',
   'submissions',
   'feedback',
 ];
@@ -566,6 +567,36 @@ export function createMockDb({
       const message = { id: newId(), project_id: projectId, user_id: userId, role, sender, content: text.slice(0, 4000), created_at: nowIso() };
       commit({ agentMessages: [...data.agentMessages, message] });
       return message;
+    },
+
+    // PROPOSED TeamNote: each person's coach keeps one up-to-date line that every coach on the
+    // project can read. Replacing it (new id) means a seeded note never keeps its "sample" label.
+    async setTeamNote({ userId, projectId, role, content, agentMessageId = null }) {
+      const membership = requireMember(userId, projectId, 'share notes with its coaches');
+      if (membership.role !== role) fail('forbidden', 'Team notes follow your role on this project.');
+      const text = String(content ?? '').trim();
+      if (!text) fail('invalid', 'A team note needs some text.');
+      const note = {
+        id: newId(),
+        project_id: projectId,
+        author_id: userId,
+        role,
+        content: text.slice(0, 280),
+        agent_message_id: agentMessageId,
+        updated_at: nowIso(),
+      };
+      const others = data.teamNotes.filter((n) => !(n.project_id === projectId && n.author_id === userId));
+      commit({ teamNotes: [...others, note] });
+      return note;
+    },
+
+    // Only the person a note is about can remove it, so it is looked up by their own id.
+    async removeTeamNote({ userId, projectId }) {
+      await pause();
+      const existing = data.teamNotes.find((n) => n.project_id === projectId && n.author_id === userId);
+      if (!existing) fail('not_found', 'There is no team note to remove.');
+      commit({ teamNotes: data.teamNotes.filter((n) => n.id !== existing.id) });
+      return existing;
     },
   };
 }

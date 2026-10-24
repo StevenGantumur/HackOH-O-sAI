@@ -1,11 +1,13 @@
+/* ---- Layout: the chat, then a rail with the coach switcher, team context and ladder ------- */
+
 .coach-layout {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 24px;
   align-items: start;
 }
 
-.coach-side {
+.coach-rail {
   display: grid;
   gap: 16px;
 }
@@ -49,29 +51,112 @@
 }
 
 .coach-link-role {
+  overflow: hidden;
   color: var(--c-text-3);
   font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.coach-facts {
+/* ---- Shared team context ----------------------------------------------------------------- */
+
+.team-context {
+  gap: 16px;
+}
+
+.team-notes {
   display: grid;
+  gap: 12px;
+  list-style: none;
+}
+
+.team-note {
+  display: flex;
+  align-items: flex-start;
   gap: 10px;
+}
+
+.team-note.is-me {
+  margin: -6px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--c-brand-tint);
+}
+
+.team-note-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.team-note-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
   font-size: 13px;
 }
 
-.coach-facts dt {
+.team-note-coach {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.team-note-text {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.team-note-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   color: var(--c-text-3);
   font-size: 12px;
 }
 
-.coach-facts dd {
-  font-weight: 500;
+.team-note-meta .text-link {
+  font-size: 12px;
 }
 
-.coach-due {
-  display: block;
-  font-weight: 400;
+.context-block {
+  display: grid;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-line);
 }
+
+.context-title {
+  color: var(--c-text-3);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.board-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.context-msgs {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+}
+
+.context-msg-text {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--c-text-2);
+  font-size: 13px;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ---- Help ladder with think-first locks ----------------------------------------------------- */
 
 .ladder {
   display: grid;
@@ -99,6 +184,31 @@
   font-weight: 700;
 }
 
+.ladder li.is-locked {
+  color: var(--c-text-3);
+}
+
+.ladder li.is-locked .ladder-num {
+  background: var(--c-subtle);
+  color: var(--c-text-3);
+}
+
+.ladder-lock {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-brand-strong);
+}
+
+.ladder-progress {
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--c-subtle);
+  color: var(--c-text-2);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
 .coach-rules summary {
   color: var(--c-brand);
   font-size: 13px;
@@ -119,11 +229,13 @@
   white-space: pre-wrap;
 }
 
+/* ---- Chat ------------------------------------------------------------------------------------ */
+
 .coach-chat {
   display: flex;
   flex-direction: column;
-  height: min(720px, calc(100dvh - 210px));
-  min-height: 480px;
+  height: min(780px, calc(100dvh - 200px));
+  min-height: 520px;
   overflow: hidden;
   border: 1px solid var(--c-line);
   border-radius: var(--radius-lg);
@@ -134,18 +246,25 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 10px 14px;
   padding: 14px 18px;
   border-bottom: 1px solid var(--c-line);
 }
 
 .coach-chat-who {
   flex: 1;
-  min-width: 140px;
+  min-width: 160px;
 }
 
 .coach-chat-title {
+  font-size: 15px;
   font-weight: 650;
+}
+
+.coach-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .coach-avatar {
@@ -155,8 +274,9 @@
   height: 38px;
   flex: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, #d4163c, var(--c-brand-strong));
+  background: var(--c-brand);
   color: #fff;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.15);
 }
 
 .coach-avatar-sm {
@@ -175,6 +295,21 @@
   font-weight: 600;
 }
 
+.coach-focus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-bottom: 1px solid var(--c-line);
+  background: var(--c-chrome);
+  font-size: 13px;
+}
+
+.coach-focus svg {
+  flex: none;
+  color: var(--c-brand);
+}
+
 .coach-messages {
   display: flex;
   flex: 1;
@@ -183,13 +318,13 @@
   min-height: 0;
   padding: 20px 18px;
   overflow-y: auto;
-  background: #fcfcfb;
+  background: #fcfcfc;
 }
 
 .coach-empty {
   display: grid;
   gap: 6px;
-  max-width: 52ch;
+  max-width: 54ch;
   margin: auto;
   text-align: center;
 }
@@ -197,6 +332,11 @@
 .coach-empty-title {
   font-size: 16px;
   font-weight: 650;
+}
+
+.bubble-group {
+  display: grid;
+  gap: 6px;
 }
 
 .bubble-row {
@@ -210,7 +350,9 @@
 }
 
 .bubble {
-  max-width: min(78%, 62ch);
+  display: grid;
+  gap: 8px;
+  max-width: min(80%, 64ch);
   padding: 11px 14px;
   border-radius: 16px;
   font-size: 14px;
@@ -228,6 +370,38 @@
   border-bottom-right-radius: 6px;
   background: var(--c-brand);
   color: #fff;
+}
+
+.bubble-turn {
+  margin-top: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--c-brand-tint);
+  border: 1px solid var(--c-brand-line);
+}
+
+.bubble-turn strong {
+  color: var(--c-brand-strong);
+}
+
+.note-shared {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-left: 36px;
+  max-width: min(80%, 64ch);
+  color: var(--c-text-3);
+  font-size: 12px;
+}
+
+.note-shared svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.note-shared-label {
+  font-weight: 600;
+  color: var(--c-text-2);
 }
 
 .typing {
@@ -283,6 +457,12 @@
   white-space: nowrap;
 }
 
+/* Starters that only fill the box look unfinished on purpose: you finish the sentence. */
+.starter.is-prefill {
+  border-style: dashed;
+  background: var(--c-surface);
+}
+
 .starter:hover:not(:disabled) {
   background: var(--c-brand-soft);
 }
@@ -297,7 +477,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .coach-side {
-    order: 2;
+  .coach-chat {
+    height: min(720px, 78vh);
   }
 }

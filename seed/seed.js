@@ -6,7 +6,7 @@
 // mission brief (§5.3, §6.3) needs them, so they are logged as open questions in DECISIONS.md.
 
 // Bump whenever this file changes, so browsers holding older demo data reload the new seed.
-export const SEED_VERSION = 2;
+export const SEED_VERSION = 3;
 
 // Timestamps are written relative to this anchor (Sat Oct 24 2026, noon EDT). The mock store
 // shifts them by (now - anchor) on first load, so "due in 2 days" stays true whenever you demo.
@@ -588,6 +588,23 @@ const messages = [
   msg('m-16', 'ch-pod-general', 'u-nia', 'Guests for episodes 3 to 5 are booked.', at(-2, -2)),
 ];
 
+// PROPOSED TeamNote (not in AGENTS.md §5.1 yet, see DECISIONS.md): one line per person per project
+// that every coach on the project can read. Neutral status only, never quotes from a private chat.
+const note = (id, project_id, author_id, role, content, updated_at) => ({ id, project_id, author_id, role, content, agent_message_id: null, updated_at });
+
+const teamNotes = [
+  note('tn-1', 'p-compost', 'u-leila', 'LEADER', 'Leila is booking the Ohio Union fair table and wants the launch post written before then.', at(-1, -4)),
+  note('tn-2', 'p-compost', 'u-amara', 'DESIGNER', 'Amara submitted three bin-label directions and is waiting on feedback before refining one.', at(0, -5)),
+  note('tn-3', 'p-compost', 'u-priya', 'ANALYST', 'Priya is one dining-hall audit away from the weekly volume estimate.', at(-1, -1)),
+  note('tn-4', 'p-compost', 'u-elena', 'MENTOR', 'Elena is reviewing the bin-label concepts this afternoon.', at(0, -3)),
+  note('tn-5', 'p-busstop', 'u-nia', 'RESEARCHER', 'Nia is lining up five riders for interviews and needs an interview guide before booking calls.', at(-1, -2)),
+  note('tn-6', 'p-busstop', 'u-diego', 'BUILDER', 'Diego is building the stop-detail card and wants an accessibility pass once it renders.', at(0, -6)),
+  note('tn-7', 'p-busstop', 'u-theo', 'ANALYST', 'Theo finished geocoding the stops and can answer questions about the stop data.', at(-3)),
+  note('tn-8', 'p-clinic', 'u-hannah', 'ANALYST', 'Hannah is deciding whether walk-outs should count in the wait-time metric.', at(-1, -5)),
+  note('tn-9', 'p-grip', 'u-marcus', 'BUILDER', 'Marcus is printing v0.3 and will test it on the mug, pen and phone checklist.', at(-2, -3)),
+  note('tn-10', 'p-podcast', 'u-sam', 'LEADER', 'Sam is editing Episode 2 and wants the show notes drafted alongside it.', at(-2)),
+];
+
 // PROPOSED Submission + Feedback contracts (AGENTS.md §5.1). Every record here is sample data
 // and the UI labels it that way (§5.3).
 const submissions = [
@@ -788,6 +805,7 @@ export const seed = {
   channels,
   messages,
   agentMessages: [],
+  teamNotes,
   submissions,
   feedback,
   blobs,
