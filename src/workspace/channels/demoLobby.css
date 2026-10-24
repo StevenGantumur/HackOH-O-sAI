@@ -1,0 +1,19 @@
+.demo-lobby-status { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 22px; font-size: 14px; font-weight: 600; text-align: center; }
+.demo-lobby-dot { width: 9px; height: 9px; flex-shrink: 0; border-radius: 50%; background: var(--c-text-3); }
+.demo-lobby-dot.is-connected { background: var(--tone-done-fg); }
+.demo-lobby-participants { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--c-line); border-radius: var(--radius-lg); overflow: hidden; }
+.demo-lobby-participant { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-height: 280px; padding: 28px 16px; text-align: center; background: var(--c-brand-tint); }
+.demo-lobby-participant + .demo-lobby-participant { border-left: 1px solid var(--c-line); }
+.demo-lobby-participant.is-waiting { background: var(--c-chrome); }
+.demo-lobby-participant.is-waiting .avatar { opacity: .5; }
+.demo-lobby-participant h3 { font-size: 16px; overflow-wrap: anywhere; }
+.demo-lobby-person-status { color: var(--c-text-3); font-size: 12px; }
+.demo-lobby-help { margin-top: 20px; color: var(--c-text-3); font-size: 13px; line-height: 1.8; }
+.demo-lobby-error { margin-top: 20px; color: var(--c-danger); font-size: 13px; }
+.teamup-chat-head { flex-wrap: wrap; }
+.teamup-chat-head .teamup-start-demo { margin-left: auto; }
+@media (max-width: 480px) {
+  .demo-lobby-participant { min-height: 220px; padding: 20px 10px; gap: 12px; }
+  .demo-lobby-participant .avatar { width: 76px; height: 76px; }
+  .demo-lobby-participant h3 { font-size: 14px; }
+}

@@ -4,6 +4,7 @@ import { Avatar } from '../shared/ui/Avatar.jsx';
 import { Icon } from '../shared/ui/Icon.jsx';
 import { addDemoMessage, useDemoChats } from './demoChats.js';
 import { formatTime } from '../shared/format.js';
+import { DemoLobby } from '../workspace/channels/DemoLobby.jsx';
 import '../workspace/channels/channels.css';
 
 // MOCK: Local conversation preview only. No delivery, replies, or database writes.
@@ -12,6 +13,7 @@ export function DirectChatPreview({ person, me }) {
   const id = useId();
   const [text, setText] = useState('');
   const [error, setError] = useState('');
+  const [lobbyOpen, setLobbyOpen] = useState(false);
   const chats = useDemoChats();
   const chat = chats.find((entry) => entry.participants.includes(me.id) && entry.participants.includes(person.id));
   const messages = chat?.messages ?? [];
@@ -31,9 +33,12 @@ export function DirectChatPreview({ person, me }) {
 
   return (
     <section className="channel" aria-labelledby={`${id}-title`}>
-      <header className="channel-head">
+      <header className="channel-head teamup-chat-head">
         <Avatar user={person} size={36} />
         <h2 className="channel-title" id={`${id}-title`}>{chat ? `# demo-${chat.number} · ` : ''}{person.name}</h2>
+        <button className="btn btn-primary btn-sm teamup-start-demo" type="button" onClick={() => setLobbyOpen(true)}>
+          <Icon name="users" size={16} /> Start demo
+        </button>
         <a className="btn btn-ghost btn-sm" href={href('/messages')}>Project channels</a>
         <a className="btn btn-ghost btn-sm" href={href('/team-up')}>Back to Team Up</a>
       </header>
@@ -56,6 +61,7 @@ export function DirectChatPreview({ person, me }) {
         <textarea id={id} className="composer-input" rows={2} maxLength={2000} placeholder={`Draft a message to ${person.name.split(' ')[0]}…`} value={text} onChange={(event) => setText(event.target.value)} />
         <button type="submit" className="btn btn-primary" disabled={!text.trim()}><Icon name="send" size={18} /> Preview message</button>
       </form>
+      {lobbyOpen && <DemoLobby me={me} person={person} onClose={() => setLobbyOpen(false)} />}
     </section>
   );
 }
