@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { firstName } from '../shared/format.js';
 import { navigate, taskHref } from '../shared/router.js';
 import { getUser, isMission, reviewersOf } from '../shared/selectors.js';
@@ -5,23 +6,21 @@ import { DEFAULT_USER_ID, switchDemoUser } from '../shared/session.js';
 import { useData, useMe } from '../shared/store.js';
 import { Icon } from '../shared/ui/Icon.jsx';
 
-// Tracks the MVP acceptance flow (AGENTS.md §6.7) for the demo student, using only records
-// created since the demo data was loaded.
 export function demoProgress(data, studentId) {
   const since = Date.parse(data.meta.seededAt);
   const isNew = (iso) => Boolean(iso) && Date.parse(iso) >= since;
-  const mission = data.tasks.filter((t) => t.owner_id === studentId && isMission(t) && isNew(t.claimed_at)).at(-1) ?? null;
-  const submissions = data.submissions.filter((s) => s.author_id === studentId && isNew(s.created_at));
-  const feedback = data.feedback.filter((f) => submissions.some((s) => s.id === f.submission_id));
+  const mission = data.tasks.filter((task) => task.owner_id === studentId && isMission(task) && isNew(task.claimed_at)).at(-1) ?? null;
+  const submissions = data.submissions.filter((submission) => submission.author_id === studentId && isNew(submission.created_at));
+  const feedback = data.feedback.filter((item) => submissions.some((submission) => submission.id === item.submission_id));
   const reviewers = mission ? reviewersOf(data, mission.project_id) : [];
-  const reviewerId = (reviewers.find((m) => m.role === 'MENTOR') ?? reviewers[0])?.user_id ?? 'u-grace';
+  const reviewerId = (reviewers.find((membership) => membership.role === 'MENTOR') ?? reviewers[0])?.user_id ?? 'u-grace';
   return {
     mission,
     reviewer: getUser(data, reviewerId),
     claimed: Boolean(mission),
     submitted: submissions.length > 0,
     reviewed: feedback.length > 0,
-    approved: feedback.some((f) => f.rubric?.outcome === 'approved'),
+    approved: feedback.some((item) => item.rubric?.outcome === 'approved'),
   };
 }
 
@@ -33,6 +32,7 @@ function switchTo(userId, path) {
 export function DemoGuide({ onHide }) {
   const data = useData();
   const me = useMe();
+  const [expanded, setExpanded] = useState(false);
   const student = getUser(data, DEFAULT_USER_ID);
   const progress = demoProgress(data, student.id);
   const { reviewer, mission } = progress;
@@ -41,7 +41,7 @@ export function DemoGuide({ onHide }) {
   const backToStudent = (path) => (
     <button type="button" className="btn btn-soft btn-sm" onClick={() => switchTo(student.id, path)}>
       <Icon name="swap" size={16} />
-      Switch back to {studentName}
+      Switch to {studentName}
     </button>
   );
 
@@ -93,7 +93,7 @@ export function DemoGuide({ onHide }) {
     },
     {
       title: 'See the evidence card',
-      text: `Approved work becomes a card on ${studentName}’s profile, linked to the real task, file and feedback.`,
+      text: `Approved work becomes a card on ${studentName}’s profile, linked to the task, file and feedback.`,
       doneText: `It’s on ${studentName}’s profile.`,
       done: progress.approved,
       action: isStudent ? (
@@ -106,41 +106,56 @@ export function DemoGuide({ onHide }) {
     },
   ];
   const current = steps.findIndex((step) => !step.done);
+  const completed = steps.filter((step) => step.done).length;
+  const currentStep = current === -1 ? null : steps[current];
 
   return (
-    <section className="guide" aria-labelledby="guide-title">
-      <div className="guide-head">
-        <div>
+    <section className={`guide ${expanded ? 'is-expanded' : ''}`} aria-labelledby="guide-title">
+      <div className="guide-summary">
+        <span className="guide-progress" aria-label={`${completed} of ${steps.length} walkthrough steps complete`}>
+          {completed}/{steps.length}
+        </span>
+        <div className="guide-copy">
+          <p className="guide-label">Demo walkthrough</p>
           <h2 id="guide-title" className="guide-title">
-            {current === -1 ? 'That’s the whole loop. Reset the demo data to run it again.' : `Demo walkthrough: ${studentName}’s first contribution`}
+            {currentStep ? currentStep.title : 'Contribution loop complete'}
           </h2>
-          <p className="guide-sub">Each step is saved in this browser, so you can refresh at any point.</p>
+          <p className="guide-sub">
+            {currentStep ? currentStep.text : `You completed ${studentName}’s first contribution from claim to evidence.`}
+          </p>
         </div>
-        <button type="button" className="icon-btn" onClick={onHide} aria-label="Hide the walkthrough">
-          <Icon name="x" />
-        </button>
-      </div>
-      <ol className="guide-steps">
-        {steps.map((step, i) => (
-          <li
-            key={step.title}
-            className={`guide-step ${step.done ? 'is-done' : ''} ${i === current ? 'is-current' : ''}`}
-            aria-current={i === current ? 'step' : undefined}
+        <div className="guide-actions">
+          {currentStep?.action}
+          <button
+            type="button"
+            className="btn btn-quiet btn-sm"
+            aria-expanded={expanded}
+            aria-controls="demo-checklist"
+            onClick={() => setExpanded((value) => !value)}
           >
-            <span className="guide-num" aria-hidden="true">
-              {step.done ? <Icon name="check" size={16} strokeWidth={2.4} /> : i + 1}
-            </span>
-            <div className="guide-copy">
-              <p className="guide-step-title">
-                {step.title}
-                {step.done && <span className="visually-hidden"> (done)</span>}
-              </p>
-              <p className="guide-step-text">{step.done && step.doneText ? step.doneText : step.text}</p>
-              {i === current && step.action && <div className="guide-action">{step.action}</div>}
-            </div>
-          </li>
-        ))}
-      </ol>
+            {expanded ? 'Hide checklist' : 'View checklist'}
+            <Icon name="chevronDown" size={15} className={expanded ? 'is-rotated' : undefined} />
+          </button>
+          <button type="button" className="icon-btn icon-btn-sm" onClick={onHide} aria-label="Dismiss the demo walkthrough">
+            <Icon name="x" size={18} />
+          </button>
+        </div>
+      </div>
+      {expanded && (
+        <ol className="guide-steps" id="demo-checklist">
+          {steps.map((step, index) => (
+            <li key={step.title} className={`guide-step ${step.done ? 'is-done' : ''} ${index === current ? 'is-current' : ''}`} aria-current={index === current ? 'step' : undefined}>
+              <span className="guide-num" aria-hidden="true">
+                {step.done ? <Icon name="check" size={14} strokeWidth={2.4} /> : index + 1}
+              </span>
+              <span>
+                <span className="guide-step-title">{step.title}</span>
+                <span className="guide-step-text">{step.done && step.doneText ? step.doneText : step.text}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
     </section>
   );
 }

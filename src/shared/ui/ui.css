@@ -30,6 +30,7 @@
   --c-text-2: #3f4443;
   --c-text-3: #62686c;
   --c-brand: var(--c-osu-scarlet);
+  --c-link: var(--c-brand);
   --c-brand-strong: #9a0a27;
   --c-brand-soft: #fbe9ec;
   --c-brand-soft-hover: #f7d9df;
@@ -64,6 +65,45 @@
   --shadow-pop: 0 18px 50px -12px rgba(28, 26, 30, 0.3), 0 2px 6px rgba(28, 26, 30, 0.06);
 }
 
+:root[data-theme='dark'] {
+  --c-surface: #17191b;
+  --c-chrome: #111315;
+  --c-subtle: #222629;
+  --c-hover: #292d31;
+  --c-line: #2e3337;
+  --c-line-strong: #454b50;
+  --c-text: #f3f4f5;
+  --c-text-2: #d2d6d9;
+  --c-text-3: #9ba3a9;
+  --c-brand: #c52248;
+  --c-brand-strong: #df365b;
+  --c-link: #ff8198;
+  --c-brand-soft: #351820;
+  --c-brand-soft-hover: #44202a;
+  --c-brand-tint: #24171a;
+  --c-brand-line: #5c2b36;
+  --c-brand-line-strong: #824052;
+  --c-brand-ring: rgba(255, 129, 152, 0.3);
+  --c-danger: #ff8793;
+  --tone-todo-bg: #3b1c25;
+  --tone-todo-fg: #ff9bad;
+  --tone-progress-bg: #2b3034;
+  --tone-progress-fg: #d8dde0;
+  --tone-review-bg: #3b2e1b;
+  --tone-review-fg: #f7c66f;
+  --tone-done-bg: #183322;
+  --tone-done-fg: #8bd9a7;
+  --tone-easy-bg: #183322;
+  --tone-easy-fg: #8bd9a7;
+  --tone-medium-bg: #3b2e1b;
+  --tone-medium-fg: #f7c66f;
+  --tone-hard-bg: #3d2023;
+  --tone-hard-fg: #ff9a9f;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-raised: 0 16px 36px -16px rgba(0, 0, 0, 0.72);
+  --shadow-pop: 0 18px 50px -12px rgba(0, 0, 0, 0.78), 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
 *,
 *::before,
 *::after {
@@ -82,7 +122,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   color: var(--c-text);
-  background: #dfe2e5;
+  background: var(--c-line-strong);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -129,7 +169,7 @@ button {
 }
 
 a {
-  color: var(--c-brand);
+  color: var(--c-link);
 }
 
 img {
@@ -138,12 +178,17 @@ img {
 }
 
 :focus-visible {
-  outline: 2px solid var(--c-brand);
+  outline: 2px solid var(--c-link);
   outline-offset: 2px;
 }
 
 ::selection {
   background: #f7d3db;
+}
+
+:root[data-theme='dark'] ::selection {
+  background: #68303d;
+  color: #fff;
 }
 
 .visually-hidden {
@@ -171,7 +216,7 @@ img {
 }
 
 .text-link {
-  color: var(--c-brand);
+  color: var(--c-link);
   font-weight: 600;
   text-decoration: none;
   background: none;
@@ -534,7 +579,7 @@ input[type='file']::file-selector-button {
 
 .chip-neutral {
   background: var(--c-subtle);
-  color: #4a4f57;
+  color: var(--c-text-2);
 }
 
 .pill {
