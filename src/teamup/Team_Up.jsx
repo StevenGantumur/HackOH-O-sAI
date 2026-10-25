@@ -50,6 +50,7 @@ export function Team_Up() {
           <DemoProgress points={SAMPLE_POINTS} sample />
           <div className="teamup-practice-heading"><h2>A little practice, a little confidence.</h2><span>GO AT YOUR PACE</span></div>
           <TeamUpButtons onPractice={() => setPanel('practice')} onCategories={() => setPanel('categories')} />
+          <a className="btn btn-outline" href="#/team-up/demo-preview">Test the shared problem editor</a>
           <a className="teamup-muted" href="#/team-up/supabase">Developer: check Supabase connection</a>
         </div>
         <ConnectionInbox key={me.id} people={people.filter(isSamplePerson).slice(0, 3)} />

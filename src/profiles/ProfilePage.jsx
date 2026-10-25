@@ -71,7 +71,6 @@ export function ProfilePage({ userId }) {
             </dl>
           </section>
 
-<<<<<<< HEAD
           <ContributionCalendar key={`${user.id}-${me.id}`} data={data} user={user} viewerId={me.id} />
 
           <div className="profile-journey">
@@ -84,9 +83,7 @@ export function ProfilePage({ userId }) {
               emptyAction={isMe ? <a className="btn btn-quiet btn-sm" href={href('/team-up')}>Explore Team Up</a> : null}
             />
           </div>
-=======
           {isOwner && (directory.status === 'ready' ? <AccountProfileEditor /> : <p role={directory.error ? 'alert' : 'status'}>{directory.error || 'Loading account details…'}{directory.error && <button className="btn btn-ghost btn-sm" type="button" onClick={directory.reload}>Retry</button>}</p>)}
->>>>>>> origin/30-minute-demo
 
           <section className="section">
             <div className="section-head">

@@ -37,3 +37,5 @@ building the first UI pass and are not agreed contracts yet.
 - 2026-10-24 — Added a conditionally rendered shared plain-text document to the existing local demo lobby. Kept the established BroadcastChannel scope, with character operations for concurrent text, reconnect snapshots, and a read-only disconnected state. Cross-device transport and durable persistence remain unimplemented.
 
 - 2026-10-24 — Messages and chat lists now poll automatically three seconds after each completed read, pause in hidden tabs, and resume on focus or network recovery. React effects own cleanup; no Turbo dependency, Realtime publication, or schema change is needed. Incoming history merges with confirmed sends to avoid stale-read races.
+
+- 2026-10-24 — Embedded the Easy practice bank in the shared demo editor, with synchronized problem selection. Added authenticated /team-up/demo-preview with two clearly labeled local sample editors for interactive testing and a simulated disconnect toggle. Browser component checks confirmed edits and problem changes sync in both directions; no code execution or backend persistence was added.

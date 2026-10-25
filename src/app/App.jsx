@@ -16,6 +16,7 @@ import { MessagesPage } from '../workspace/channels/MessagesPage.jsx';
 import { CoachPage } from '../agents/CoachPage.jsx';
 import { ProfilePage } from '../profiles/ProfilePage.jsx';
 import { Team_Up } from '../teamup/Team_Up.jsx';
+import { DemoPreviewPage } from '../teamup/DemoPreviewPage.jsx';
 import { SupabaseConnectionPage } from '../teamup/SupabaseConnectionPage.jsx';
 import { AuthProvider, useAuth } from '../auth/AuthProvider.jsx';
 import { AuthPage } from '../auth/AuthPage.jsx';
@@ -26,6 +27,7 @@ import './shell.css';
 const ROUTES = [
   ['/', () => <HomePage />],
   ['/team-up', () => <Team_Up />],
+  ['/team-up/demo-preview', () => <DemoPreviewPage />],
   ['/team-up/supabase', () => <SupabaseConnectionPage />],
   ['/missions', () => <MissionsPage />],
   ['/projects', () => <ProjectsPage />],
