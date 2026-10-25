@@ -25,7 +25,9 @@ export function ProfilePage({ userId }) {
   const me = useMe();
   const auth = useAuth();
   const directory = useAccountDirectory();
-  const user = getUser(data, userId ?? auth.profile.id);
+  // The profile route follows the selected demo persona. An explicit people
+  // link keeps its target, while auth.profile still controls real-account edits.
+  const user = getUser(data, userId ?? me.id);
   if (!user) {
     return directory.status === 'loading'
       ? <Page title="Profile"><p role="status">Loading profile…</p></Page>
@@ -52,6 +54,7 @@ export function ProfilePage({ userId }) {
           <section className="card profile-card">
             <Avatar user={user} size={76} />
             <div className="profile-id">
+              <p className="profile-account-tag">Signed in as <a href={href(`/people/${auth.profile.id}`)}>@{auth.profile.username}</a></p>
               <h2 className="profile-name">{user.name}</h2>
               <p className="muted">{profileHeadline(profile, user)}</p>
               <div className="profile-badges">

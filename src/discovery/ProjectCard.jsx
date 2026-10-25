@@ -22,7 +22,7 @@ export function ProjectCard({ project, reasons = [] }) {
     <article className="project-card">
       <div className="project-content">
         <div className="project-top">
-          <span className="card-project-mark" style={{ background: art.bg }} aria-hidden="true">{art.emoji}</span>
+          <span className="card-project-mark" style={{ '--card-art-light': art.bg, '--card-art-dark': art.darkBg }} aria-hidden="true">{art.emoji}</span>
           <UserTypeBadge type={owner?.type} />
           {membership && <RoleBadge role={membership.role} />}
         </div>
@@ -37,7 +37,7 @@ export function ProjectCard({ project, reasons = [] }) {
         <p className="project-desc">{project.description}</p>
         <div className="tags" aria-label="Roles needed">
           {project.needed_roles.map((role) => (
-            <span key={role} className="tag" style={{ background: ROLE_META[role].soft, color: ROLE_META[role].color }}>
+            <span key={role} className="tag" data-role={role} style={{ background: `var(--card-role-bg, ${ROLE_META[role].soft})`, color: `var(--card-role-fg, ${ROLE_META[role].color})` }}>
               {ROLE_META[role].tag}
             </span>
           ))}

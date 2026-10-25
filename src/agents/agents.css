@@ -287,10 +287,10 @@
 
 .mock-badge {
   padding: 5px 10px;
-  border: 1px dashed #c9a24a;
+  border: 1px dashed var(--c-notice-line);
   border-radius: 8px;
-  background: #fffaf0;
-  color: #7a5300;
+  background: var(--c-notice-surface);
+  color: var(--c-notice-text);
   font-size: 12px;
   font-weight: 600;
 }
@@ -318,7 +318,7 @@
   min-height: 0;
   padding: 20px 18px;
   overflow-y: auto;
-  background: #fcfcfc;
+  background: var(--c-chat-surface);
 }
 
 .coach-empty {

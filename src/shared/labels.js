@@ -50,14 +50,14 @@ export const OUTCOME_META = {
 
 // Cover art per project, picked from its first tag so new projects get one too.
 const ART_BY_TAG = {
-  sustainability: { emoji: '🌍', bg: '#f8efe0' },
-  mobility: { emoji: '🚌', bg: '#e4f0fb' },
-  health: { emoji: '🩺', bg: '#fbe7ec' },
-  hardware: { emoji: '🦾', bg: '#e9ecef' },
-  media: { emoji: '🎙️', bg: '#fdeedd' },
-  education: { emoji: '📚', bg: '#e6f4e0' },
+  sustainability: { emoji: '🌍', bg: '#f8efe0', darkBg: '#29251e' },
+  mobility: { emoji: '🚌', bg: '#e4f0fb', darkBg: '#1c2936' },
+  health: { emoji: '🩺', bg: '#fbe7ec', darkBg: '#34212a' },
+  hardware: { emoji: '🦾', bg: '#e9ecef', darkBg: '#252a30' },
+  media: { emoji: '🎙️', bg: '#fdeedd', darkBg: '#30261e' },
+  education: { emoji: '📚', bg: '#e6f4e0', darkBg: '#213023' },
 };
-const DEFAULT_ART = { emoji: '🧩', bg: '#f1f1ef' };
+const DEFAULT_ART = { emoji: '🧩', bg: '#f1f1ef', darkBg: '#292b2b' };
 
 export function projectArt(project) {
   const tag = project?.tags?.[0]?.toLowerCase();

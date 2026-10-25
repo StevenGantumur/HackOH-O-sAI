@@ -6,7 +6,7 @@ export function RoleLabel({ role, className = '' }) {
   const meta = ROLE_META[role];
   if (!meta) return null;
   return (
-    <span className={`role-label ${className}`} style={{ color: meta.color }}>
+    <span className={`role-label ${className}`} data-role={role} style={{ color: `var(--card-role-fg, ${meta.color})` }}>
       {meta.tag}
     </span>
   );
@@ -16,7 +16,7 @@ export function RoleBadge({ role }) {
   const meta = ROLE_META[role];
   if (!meta) return null;
   return (
-    <span className="role-badge" style={{ color: meta.color, background: meta.soft }}>
+    <span className="role-badge" data-role={role} style={{ color: `var(--card-role-fg, ${meta.color})`, background: `var(--card-role-bg, ${meta.soft})` }}>
       <span className="role-badge-dot" style={{ background: meta.dot }} aria-hidden="true" />
       {meta.label}
     </span>
@@ -27,7 +27,7 @@ export function UserTypeBadge({ type }) {
   const meta = USER_TYPE_META[type];
   if (!meta) return null;
   return (
-    <span className="type-badge" style={{ color: meta.color }}>
+    <span className="type-badge" data-user-type={type} style={{ color: `var(--card-type-fg, ${meta.color})` }}>
       {meta.label}
     </span>
   );

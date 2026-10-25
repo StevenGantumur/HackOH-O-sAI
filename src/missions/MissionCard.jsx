@@ -19,7 +19,7 @@ export function MissionCard({ task, project, reasons = [], featured = false }) {
     <article className={`mission-card ${featured ? 'is-featured' : ''}`}>
       <div className="mission-content">
         <div className="mission-top">
-          <span className="card-project-mark" style={{ background: art.bg }} aria-hidden="true">{art.emoji}</span>
+          <span className="card-project-mark" style={{ '--card-art-light': art.bg, '--card-art-dark': art.darkBg }} aria-hidden="true">{art.emoji}</span>
           <span className="mission-project">{project.title}</span>
           <RoleLabel role={task.role} />
           {featured && <span className="cover-badge">Best match</span>}

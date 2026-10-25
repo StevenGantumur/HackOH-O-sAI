@@ -11,6 +11,7 @@
 
 import { DIFFICULTIES, DOER_ROLES, REVIEWER_ROLES, REVIEW_OUTCOMES, RUBRIC_RATINGS, AGENT_SENDERS } from './contracts.js';
 import { versionsForFile } from './selectors.js';
+import { applySampleLeadership } from './sampleLeadership.js';
 
 export const TABLES = [
   'users',
@@ -291,7 +292,9 @@ export function createMockDb({
         if (profileIndex < 0) { profiles.push(profile); changed = true; }
         else if (JSON.stringify(current) !== JSON.stringify(profile)) { profiles[profileIndex] = profile; changed = true; }
       }
-      if (changed) commit({ users, profiles });
+      const registered = { ...data, users, profiles };
+      const assigned = applySampleLeadership(registered, nowIso());
+      if (changed || assigned !== registered) commit({ users, profiles, projects: assigned.projects, memberships: assigned.memberships });
     },
 
     readBlob(ref) {
@@ -318,7 +321,7 @@ export function createMockDb({
         ours.forEach(remove);
       }
       data = fresh();
-      data = { ...data, users: [...data.users, ...registered], profiles: [...data.profiles, ...accountProfiles] };
+      data = applySampleLeadership({ ...data, users: [...data.users, ...registered], profiles: [...data.profiles, ...accountProfiles] }, nowIso());
       try {
         write(key, JSON.stringify(data));
       } catch {

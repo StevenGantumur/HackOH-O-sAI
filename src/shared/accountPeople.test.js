@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { accountPerson, isSamplePerson, peopleForDiscovery } from './accountPeople.js';
 import { createMockDb, memoryStorage } from './mockDb.js';
 import { seed } from '../../seed/seed.js';
+import { SAMPLE_PROJECT_LEADERS } from './sampleLeadership.js';
 
 const live = { id: '00000000-0000-4000-8000-000000000001', username: 'actual_student', email: 'private@example.invalid', major: 'Engineering', skills: ['JavaScript'], goals: ['Accessibility'] };
 
@@ -53,4 +54,32 @@ test('registered accounts can still claim a sample mission using their own ident
   const { task } = await db.claimTask({ userId: live.id, taskId: 't-b1' });
   assert.equal(task.owner_id, live.id);
   assert.equal(db.getSnapshot().memberships.some((member) => member.user_id === live.id && member.project_id === task.project_id), true);
+});
+
+test('approved sample leader replaces the old leader and survives rename, reload, and reset', async () => {
+  const storage = memoryStorage();
+  const db = createMockDb({ seed, storage, latency: [0, 0] });
+  const { projectId, userId } = SAMPLE_PROJECT_LEADERS[0];
+  const tasksBefore = db.getSnapshot().tasks;
+  db.registerAccounts([{ id: userId, username: 'designated_leader' }]);
+  db.registerAccounts([{ id: userId, username: 'renamed_leader' }]);
+  function verify(snapshot) {
+    assert.equal(snapshot.projects.find((project) => project.id === projectId).owner_id, userId);
+    const leaders = snapshot.memberships.filter((member) => member.project_id === projectId && member.role === 'LEADER');
+    assert.deepEqual(leaders.map((member) => member.user_id), [userId]);
+    assert.equal(snapshot.memberships.find((member) => member.project_id === projectId && member.user_id === 'u-leila').role, 'COMMUNICATIONS');
+  }
+  verify(db.getSnapshot());
+  assert.deepEqual(db.getSnapshot().tasks, tasksBefore);
+  const reloaded = createMockDb({ seed, storage, latency: [0, 0] });
+  verify(reloaded.getSnapshot());
+  reloaded.reset(); verify(reloaded.getSnapshot());
+  const task = await reloaded.createTask({ userId, projectId, title: 'Leader permission check', role: 'RESEARCHER' });
+  assert.equal(task.project_id, projectId);
+});
+
+test('a different account with the same name cannot receive sample leadership', () => {
+  const db = createMockDb({ seed, storage: memoryStorage(), latency: [0, 0] });
+  db.registerAccounts([{ ...live, username: 'aditya_bhosale' }]);
+  assert.equal(db.getSnapshot().projects.find((project) => project.id === 'p-compost').owner_id, 'u-leila');
 });

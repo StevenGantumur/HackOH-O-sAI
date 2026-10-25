@@ -39,6 +39,11 @@
   --c-brand-line-strong: #e3a0ae;
   --c-brand-ring: rgba(186, 12, 47, 0.28);
   --c-danger: #b42318;
+  --c-fit-surface: #f3f5f6;
+  --c-chat-surface: #fcfcfc;
+  --c-notice-surface: #fffaf0;
+  --c-notice-text: #7a5300;
+  --c-notice-line: #c9a24a;
 
   /* Board columns and status pills: scarlet, gray, amber, green. */
   --tone-todo-bg: #fbe9ec;
@@ -85,6 +90,11 @@
   --c-brand-line-strong: #824052;
   --c-brand-ring: rgba(255, 129, 152, 0.3);
   --c-danger: #ff8793;
+  --c-fit-surface: #222629;
+  --c-chat-surface: #111315;
+  --c-notice-surface: #30291c;
+  --c-notice-text: #e0c48b;
+  --c-notice-line: #67552e;
   --tone-todo-bg: #3b1c25;
   --tone-todo-fg: #ff9bad;
   --tone-progress-bg: #2b3034;
@@ -109,6 +119,19 @@
 *::after {
   box-sizing: border-box;
 }
+
+/* Card accents use dark fills rather than light-mode pastel blocks. Scoped to
+   mission/project cards so other role presentations retain their own styling. */
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-role='LEADER'] { --card-role-bg: #2b3034; --card-role-fg: #c9d0d5; }
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-role='RESEARCHER'] { --card-role-bg: #1c3033; --card-role-fg: #79c4cf; }
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-role='DESIGNER'] { --card-role-bg: #34291f; --card-role-fg: #e5b280; }
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-role='BUILDER'] { --card-role-bg: #222e41; --card-role-fg: #9cb8e3; }
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-role='ANALYST'] { --card-role-bg: #30273a; --card-role-fg: #c6addb; }
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-role='COMMUNICATIONS'] { --card-role-bg: #21352a; --card-role-fg: #95c6a5; }
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-role='MENTOR'] { --card-role-bg: #3a232c; --card-role-fg: #e9a1b1; }
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-user-type='student'] { --card-type-fg: #e9a1b1; }
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-user-type='industry'] { --card-type-fg: #79c4cf; }
+:root[data-theme='dark'] :is(.mission-card, .project-card) [data-user-type='faculty'] { --card-type-fg: #e5b280; }
 
 html,
 body,
@@ -660,9 +683,9 @@ input[type='file']::file-selector-button {
   height: 22px;
   padding: 0 8px;
   border-radius: 6px;
-  border: 1px dashed #c9a24a;
-  background: #fffaf0;
-  color: #7a5300;
+  border: 1px dashed var(--c-notice-line);
+  background: var(--c-notice-surface);
+  color: var(--c-notice-text);
   font-size: 11.5px;
   font-weight: 600;
   white-space: nowrap;

@@ -40,6 +40,22 @@
   letter-spacing: -0.02em;
 }
 
+.profile-account-tag {
+  color: var(--c-text-3);
+  font-size: 12px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.profile-account-tag a {
+  color: var(--c-text-2);
+  text-decoration: none;
+}
+
+.profile-account-tag a:hover {
+  text-decoration: underline;
+}
+
 .profile-badges {
   display: flex;
   flex-wrap: wrap;
