@@ -34,3 +34,5 @@ not complete that button integration.
 Keep SQL schema definitions in the owning feature folder. API tests live beside
 their helpers. Browser requests use the publishable key and signed-in session;
 database policies remain responsible for enforcing access.
+
+`demoSessions.js` joins/leaves live demo rooms, sends server heartbeats, reads participant presence and saved document events, and retries writes with stable operation IDs. See `src/workspace/channels/SHARED_DEMO_DOCUMENT.md`.
