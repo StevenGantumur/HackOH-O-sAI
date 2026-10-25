@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkSupabaseConnection, readSupabaseConfig } from './supabase.js';
+import { readSupabaseConfig } from './client.js';
+import { checkSupabaseConnection } from './connection.js';
 
 const env = { VITE_SUPABASE_URL: 'https://example.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test' };
 

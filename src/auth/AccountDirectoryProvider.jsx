@@ -1,3 +1,4 @@
+import { loadAccountDirectory, updateDirectoryDetails } from '../api/profiles.js';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthProvider.jsx';
 import { store } from '../shared/store.js';
@@ -16,7 +17,7 @@ export function AccountDirectoryProvider({ children }) {
   const reload = useCallback(async () => {
     setStatus('loading'); setError('');
     try {
-      const { data, error: readError } = await client.from('account_directory').select('id, username, major, skills, goals').order('username');
+      const { data, error: readError } = await loadAccountDirectory(client);
       if (readError) throw new Error('Could not load registered accounts. Please retry.');
       if (!alive.current) return;
       store.registerAccounts(data);
@@ -38,8 +39,7 @@ export function AccountDirectoryProvider({ children }) {
   }, [profile.id, profile.username, reload]);
 
   async function updateDetails(patch) {
-    const { data, error } = await client.from('account_directory').update(patch).eq('id', profile.id)
-      .select('id, username, major, skills, goals').single();
+    const { data, error } = await updateDirectoryDetails(profile.id, patch, client);
     if (error) throw new Error('Could not save your profile. Please retry.');
     store.registerAccounts([data]);
     setVersion((value) => value + 1);

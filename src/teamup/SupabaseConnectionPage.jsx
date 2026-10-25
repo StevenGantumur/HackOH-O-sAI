@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Page } from '../app/Page.jsx';
-import { checkSupabaseConnection } from '../shared/supabase.js';
+import { checkSupabaseConnection } from '../api/connection.js';
 import './teamup.css';
 
 export function SupabaseConnectionPage() {

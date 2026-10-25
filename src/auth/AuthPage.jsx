@@ -1,3 +1,5 @@
+import { signIn, signUp } from '../api/auth.js';
+import { setAccountUsername } from '../api/profiles.js';
 import { useRef, useState } from 'react';
 import { Field, FormError } from '../shared/ui/Field.jsx';
 import { Logo } from '../shared/ui/Logo.jsx';
@@ -25,14 +27,14 @@ export function AuthPage() {
     try {
       if (setup) {
         const next = validateUsername(username);
-        const result = await auth.client.from('account_profiles').update({ username: next }).eq('id', auth.user.id).select('id').single();
+        const result = await setAccountUsername(auth.user.id, next, auth.client);
         if (result.error) throw new Error(result.error.code === '23505' ? 'That username is taken. Choose another.' : 'Could not save your username. Please retry.');
         await auth.refresh();
       } else {
         if (mode === 'signup') validateUsername(username);
         const result = mode === 'signup'
-          ? await auth.client.auth.signUp({ email: email.trim(), password, options: { data: { username: validateUsername(username) } } })
-          : await auth.client.auth.signInWithPassword({ email: email.trim(), password });
+          ? await signUp({ email: email.trim(), password, username: validateUsername(username) }, auth.client)
+          : await signIn({ email: email.trim(), password }, auth.client);
         if (result.error) throw result.error;
         if (mode === 'signup' && !result.data.session) {
           setNotice('Check your email to confirm your account, then return here to sign in.');

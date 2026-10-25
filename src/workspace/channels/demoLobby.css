@@ -10,6 +10,12 @@
 .demo-lobby-person-status { color: var(--c-text-3); font-size: 12px; }
 .demo-lobby-help { margin-top: 20px; color: var(--c-text-3); font-size: 13px; line-height: 1.8; }
 .demo-lobby-error { margin-top: 20px; color: var(--c-danger); font-size: 13px; }
+.demo-document-people { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--c-line); }
+.demo-document-people > span { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+.demo-document-people > span:last-child { color: var(--c-text-3); margin-left: auto; }
+.demo-document-label { display: block; font-size: 14px; font-weight: 600; margin: 20px 0 10px; }
+.demo-document-editor { display: block; width: 100%; min-height: 340px; min-height: min(50vh, 500px); resize: vertical; padding: clamp(16px, 3vw, 32px); border: 1px solid var(--c-line-strong); border-radius: var(--radius-sm); background: var(--c-surface); color: var(--c-text); font: inherit; line-height: 1.8; }
+.demo-document-editor:disabled { opacity: .75; cursor: not-allowed; }
 .teamup-chat-head { flex-wrap: wrap; }
 .teamup-chat-head .teamup-start-demo { margin-left: auto; }
 @media (max-width: 480px) {

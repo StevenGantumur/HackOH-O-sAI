@@ -12,7 +12,7 @@ Supabase Auth manages credentials. `account_profiles` stores the Auth UUID, user
 
 The default display identity is the logged-in username and UUID. Team Up search and the Messages people list show registered accounts first, alongside labeled fictional students. Other registered accounts can be viewed or messaged, never impersonated through the sample switcher. Use my account returns from a sample project persona to the signed-in identity.
 
-Registered chat: Send message → validate draft → verify Auth → POST /rest/v1/direct_messages → await confirmed row → append and clear draft. A failed write preserves the draft. Both participant IDs and server timestamps appear with usernames resolved from the public directory. Replies load using Refresh messages; latest 100 messages are displayed.
+Registered chat: Send message → validate draft → verify Auth → POST /rest/v1/direct_messages → await confirmed row → append and clear draft. A failed write preserves the draft. Both participant IDs and server timestamps appear with usernames resolved from the public directory. Replies and chat lists update automatically using three-second polling while visible; manual Refresh remains available. The latest 100 messages are displayed. This uses React effects, not Turbo or Supabase Realtime.
 
 Fictional chat: SampleConversation uses only tab-local preview history, labeled not delivered. Incoming request examples remain fictional; no requests are fabricated for registered users.
 

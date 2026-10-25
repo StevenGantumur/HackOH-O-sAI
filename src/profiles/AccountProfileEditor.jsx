@@ -1,3 +1,4 @@
+import { saveAccountDetails } from '../api/profiles.js';
 import { useState } from 'react';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { useAccountDirectory } from '../auth/AccountDirectoryProvider.jsx';
@@ -23,7 +24,7 @@ export function AccountProfileEditor() {
     try {
       const cleanUsername = validateUsername(username);
       // The RPC commits private username and public major together, or rolls both back.
-      const { error: writeError } = await client.rpc('update_my_account_profile', { new_username: cleanUsername, new_major: major.trim() });
+      const { error: writeError } = await saveAccountDetails({ username: cleanUsername, major: major.trim() }, client);
       if (writeError) throw new Error(writeError.code === '23505' ? 'That username is taken.' : 'Could not save your profile. Please retry.');
       if (cleanUsername !== profile.username) await refresh();
       else { await directory.reload(); setNotice('Profile saved.'); }

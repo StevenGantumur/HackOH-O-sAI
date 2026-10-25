@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Avatar } from '../../shared/ui/Avatar.jsx';
 import { Modal } from '../../shared/ui/Dialog.jsx';
+import { SharedDemoDocument } from './SharedDemoDocument.jsx';
+import { useSharedDemoDocument } from './useSharedDemoDocument.js';
 import './demoLobby.css';
 
 const HEARTBEAT_MS = 2000;
@@ -12,9 +14,12 @@ const DISCONNECTED_AFTER_MS = 7000;
 export function DemoLobby({ me, person, onClose }) {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState('');
+  const [documentOpened, setDocumentOpened] = useState(false);
+  const document = useSharedDemoDocument(me.id, person.id);
 
   useEffect(() => {
     setConnected(false);
+    setDocumentOpened(false);
     setError('');
     if (typeof BroadcastChannel === 'undefined') {
       setError('This browser does not support the local connection preview. Try a browser with BroadcastChannel support.');
@@ -39,6 +44,7 @@ export function DemoLobby({ me, person, onClose }) {
         if (now - seenAt > DISCONNECTED_AFTER_MS) peers.delete(peerId);
       }
       setConnected(peers.size > 0);
+      if (peers.size > 0) setDocumentOpened(true);
     }
 
     channel.onmessage = ({ data }) => {
@@ -64,6 +70,8 @@ export function DemoLobby({ me, person, onClose }) {
       channel.close();
     };
   }, [me.id, person.id]);
+
+  if (documentOpened) return <SharedDemoDocument me={me} person={person} document={document} connected={connected} onClose={onClose} />;
 
   return (
     <Modal
@@ -92,8 +100,8 @@ export function DemoLobby({ me, person, onClose }) {
       {error ? <p className="demo-lobby-error" role="alert">{error}</p> : (
         <p className="demo-lobby-help">
           {connected
-            ? 'Both participants have opened the lobby. Your connection is local to this browser; the challenge and completion tracking are not connected yet.'
-            : `To try it: open the app in another tab, switch the demo user to ${person.name}, open Messages with ${me.name}, and click Start demo. This popup will update when they join.`}
+            ? 'Opening your shared working document…'
+            : `In another tab in this browser, open Messages as ${person.name} with ${me.name} and click Start demo. Registered users must sign in to their own accounts in each tab. Sample conversations use the demo persona switcher.`}
         </p>
       )}
     </Modal>

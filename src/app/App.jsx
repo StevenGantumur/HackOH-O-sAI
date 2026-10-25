@@ -20,6 +20,7 @@ import { SupabaseConnectionPage } from '../teamup/SupabaseConnectionPage.jsx';
 import { AuthProvider, useAuth } from '../auth/AuthProvider.jsx';
 import { AuthPage } from '../auth/AuthPage.jsx';
 import { AccountDirectoryProvider } from '../auth/AccountDirectoryProvider.jsx';
+import { WorkspaceProvider } from '../workspace/WorkspaceProvider.jsx';
 import './shell.css';
 
 const ROUTES = [
@@ -87,7 +88,7 @@ function AuthenticatedApp() {
 
 function AuthBoundary() {
   const { status, user } = useAuth();
-  return status === 'authenticated' ? <AccountDirectoryProvider key={user.id}><AuthenticatedApp /></AccountDirectoryProvider> : <AuthPage />;
+  return status === 'authenticated' ? <AccountDirectoryProvider key={user.id}><WorkspaceProvider><AuthenticatedApp /></WorkspaceProvider></AccountDirectoryProvider> : <AuthPage />;
 }
 
 export default function App() {
