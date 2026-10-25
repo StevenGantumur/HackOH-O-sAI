@@ -3,6 +3,9 @@ import { Avatar } from '../../shared/ui/Avatar.jsx';
 import { Modal } from '../../shared/ui/Dialog.jsx';
 import { SharedDemoDocument } from './SharedDemoDocument.jsx';
 import { useSharedDemoDocument } from './useSharedDemoDocument.js';
+import { useLiveDemo } from './useLiveDemo.js';
+import { useAuth } from '../../auth/AuthProvider.jsx';
+import { isLiveId } from '../../shared/liveRecords.js';
 import './demoLobby.css';
 
 const HEARTBEAT_MS = 2000;
@@ -11,7 +14,31 @@ const DISCONNECTED_AFTER_MS = 7000;
 // MOCK: Same-browser presence preview, not authenticated or backed by Supabase.
 // Both users must open this lobby in separate tabs on the same origin/browser.
 // No camera, microphone, or automatic claim that a partner has connected.
-export function DemoLobby({ me, person, onClose }) {
+export function DemoLobby(props) {
+  return isLiveId(props.me.id) && isLiveId(props.person.id)
+    ? <LiveDemoLobby person={props.person} onClose={props.onClose} />
+    : <LocalDemoLobby {...props} />;
+}
+
+function LiveDemoLobby({ person, onClose }) {
+  const { client, profile } = useAuth();
+  const document = useLiveDemo(person.id, client);
+  const me = { id: profile.id, name: profile.username };
+  if (document.connected && document.ready) return <SharedDemoDocument me={me} person={person} document={document} connected onClose={onClose} />;
+  return <Modal title="Your 30-minute demo" description="Supabase checks both participants before opening the shared problem." size="lg" onClose={onClose}
+    footer={<button className="btn btn-outline" type="button" onClick={onClose}>Leave demo</button>}>
+    <div className="demo-lobby-status" role="status">{document.error ? 'Reconnecting to your demo…' : `Waiting for ${person.name} to join…`}</div>
+    <div className="demo-lobby-participants">
+      <section className="demo-lobby-participant"><Avatar user={me} size={112} /><h3>{me.name}</h3><span className="demo-lobby-person-status">{document.sessionId ? 'Joined this demo' : 'Connecting…'}</span></section>
+      <section className="demo-lobby-participant is-waiting"><Avatar user={person} size={112} /><h3>{person.name}</h3><span className="demo-lobby-person-status">Waiting for server-confirmed presence</span></section>
+    </div>
+    {document.error && <p className="demo-lobby-error" role="alert">{document.error}</p>}
+    <p className="demo-lobby-help">Ask {person.name} to open your conversation in Messages and click Start demo while signed in to their own account. This works across computers using the same Supabase project. The problem and shared document open when both are active. Inactive connections expire after 20 seconds.</p>
+    {document.pending > 0 && <p role="status">{document.pending} local {document.pending === 1 ? 'edit is' : 'edits are'} waiting to save. Keep this popup open to retry.</p>}
+  </Modal>;
+}
+
+function LocalDemoLobby({ me, person, onClose }) {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState('');
   const [documentOpened, setDocumentOpened] = useState(false);

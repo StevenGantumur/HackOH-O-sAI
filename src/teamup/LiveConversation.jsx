@@ -73,7 +73,7 @@ export function LiveConversation({ person, account, client }) {
         <a className="btn btn-ghost btn-sm" href={href('/messages')}>Project channels</a>
         <a className="btn btn-ghost btn-sm" href={href('/team-up')}>Back to Team Up</a>
       </header>
-      <p className="composer-locked">Messages are saved in Supabase and update automatically every few seconds. The demo lobby still uses the local browser preview.</p>
+      <p className="composer-locked">Messages update automatically. Start demo joins a Supabase room; the shared problem opens when both accounts join.</p>
       {loading ? <p role="status">Loading conversation…</p> : isSelf ? <p className="composer-locked">This is your account. Choose someone else in Team Up.</p> : !recipient && <p className="composer-locked">This account is unavailable. Refresh the registered-user directory and try again.</p>}
       {(error || refreshError) && <p role="alert">{error || refreshError}</p>}
       <div className="teamup-request-actions"><button className="btn btn-ghost btn-sm" type="button" disabled={pending || loading} onClick={() => setRevision((value) => value + 1)}>Refresh messages</button></div>

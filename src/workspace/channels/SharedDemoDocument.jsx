@@ -28,9 +28,10 @@ export function SharedDemoDocument({ me, person, document, connected, onClose, i
       </details>
       <label className="demo-document-label" htmlFor={editorId}>Shared working notes</label>
       <textarea id={editorId} className="demo-document-editor" value={document.text} onChange={(event) => document.updateText(event.target.value)}
-        disabled={disabled} spellCheck={false} placeholder="Write your approach, pseudocode, or code here…" />
+        disabled={disabled} maxLength={document.live ? 10000 : undefined} spellCheck={false} placeholder="Write your approach, pseudocode, or code here…" />
       <p className="muted small" role="status">{document.text.length} characters · {connected ? 'Edits and problem selection sync live' : 'Editing paused'} · Code is not executed here</p>
-      <p className="demo-lobby-help">Local demo: edits sync between tabs in this browser. This is an in-app document, not a Google Docs connection. Copy your notes before both participants leave; they are not saved to Supabase.</p>
+      {document.live ? <p className="demo-lobby-help" role="status">{document.pending ? `${document.pending} edits waiting to save. Keep this popup open.` : 'All edits saved to Supabase.'} Both users must remain active to edit. This is an in-app shared document; code is not executed.</p>
+        : <p className="demo-lobby-help">Local demo: edits sync between tabs in this browser. This is an in-app document, not a Google Docs connection. Copy your notes before both participants leave; they are not saved to Supabase.</p>}
     </>;
   if (inline) return <section className="demo-preview-editor" aria-label={`${me.name}'s editor`}>{content}</section>;
   return (
