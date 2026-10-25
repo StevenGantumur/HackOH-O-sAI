@@ -2,8 +2,11 @@ import { createClient } from '@supabase/supabase-js';
 
 export function readSupabaseConfig(env = import.meta.env ?? {}) {
   const url = env.VITE_SUPABASE_URL?.trim();
-  const key = (env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY)?.trim();
-  if (!url || !key) throw new Error('Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env, then restart the dev server.');
+  const key = env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() || env.VITE_SUPABASE_ANON_KEY?.trim();
+  if (!url || !key) {
+    const missing = [!url && 'VITE_SUPABASE_URL', !key && 'VITE_SUPABASE_PUBLISHABLE_KEY (or legacy VITE_SUPABASE_ANON_KEY)'].filter(Boolean);
+    throw new Error(`Set ${missing.join(' and ')} in a project-root .env or .env.local file, then restart the dev server. .env.example is only a template and is not loaded.`);
+  }
   let parsed;
   try { parsed = new URL(url); } catch { throw new Error('Supabase URL must be a valid project API URL.'); }
   if (!['http:', 'https:'].includes(parsed.protocol) || parsed.pathname !== '/' || parsed.search || parsed.hash) {

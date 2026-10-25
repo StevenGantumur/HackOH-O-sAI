@@ -24,6 +24,11 @@ const fullDate = (date) => `${dateLabel(date)}, ${date.slice(0, 4)}`;
  *   Set true for fictional data. Displays a sample-data badge and identifies the
  *   source as fictional in the caption and accessible chart description.
  *   This only labels the data; it does not generate sample points.
+ * @param {boolean} [props.historyUnavailable=false]
+ *   Show an honest unavailable state when no user-specific completion source
+ *   exists. Hides totals instead of reporting unknown history as zero sessions.
+ * @param {string|null} [props.subjectName=null] Name on another user's profile.
+ * @param {import('react').ReactNode} [props.emptyAction=null] Optional next step.
  *
  * Pass already-aggregated history for the intended user. This component does not
  * fetch, persist, validate, sort, or filter records by user or date range.
@@ -39,7 +44,7 @@ const fullDate = (date) => `${dateLabel(date)}, ${date.slice(0, 4)}`;
  * // Renders 5 completed demos and 150 collaboration minutes.
  * <DemoProgress points={history} sample />
  */
-export function DemoProgress({ points = [], sample = false }) {
+export function DemoProgress({ points = [], sample = false, historyUnavailable = false, subjectName = null, emptyAction = null }) {
   const id = useId();
   const [selectedDate, setSelectedDate] = useState(null);
   const selected = points.find((point) => point.date === selectedDate) ?? points.at(-1);
@@ -56,17 +61,17 @@ export function DemoProgress({ points = [], sample = false }) {
     <section className="teamup-progress" aria-labelledby={`${id}-heading`}>
       <div className="teamup-progress-heading">
         <div>
-          <p className="teamup-eyebrow">YOUR COLLABORATION JOURNEY</p>
+          <p className="teamup-eyebrow">{subjectName ? `${subjectName}’s collaboration journey` : 'Your Collaboration Journey'}</p>
           <h2 id={`${id}-heading`}>Small sessions. Real progress.</h2>
           <p className="teamup-muted">Completed 30-minute demos over time</p>
         </div>
         {sample && <span className="teamup-sample">Sample data · preview</span>}
       </div>
-      <div className="teamup-stats">
+      {!historyUnavailable && <div className="teamup-stats">
         <div><strong>{total}</strong><span>demos completed</span></div>
         <div><strong>{total * 30}<small> min</small></strong><span>spent collaborating</span></div>
-      </div>
-      {total > 0 ? (
+      </div>}
+      {!historyUnavailable && total > 0 ? (
         <>
           <p className="teamup-inspection" aria-live="polite">
             {fullDate(selected.date)} · <strong>{selected.total} completed</strong>
@@ -120,9 +125,10 @@ export function DemoProgress({ points = [], sample = false }) {
             <circle cx="64" cy="43" r="3" />
             <path d="M 35 59 Q 50 74 65 59" className="teamup-empty-smile" />
           </svg>
-          <h3>Your first demo starts the story</h3>
-          <p>Complete a 30-minute challenge with a teammate to see your progress grow here.</p>
-          <span>No demos completed yet</span>
+          <h3>{historyUnavailable ? 'No recorded collaboration history' : 'Your first demo starts the story'}</h3>
+          <p>{historyUnavailable ? 'Team Up currently shows a sample preview. Completed sessions are not recorded for individual profiles yet.' : 'Complete a 30-minute challenge with a teammate to see your progress grow here.'}</p>
+          <span>{historyUnavailable ? 'Session totals and collaboration time are unavailable.' : 'No demos completed yet'}</span>
+          {emptyAction}
         </div>
       )}
     </section>
