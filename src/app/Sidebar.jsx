@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DOER_ROLES } from '../shared/contracts.js';
 import { ROLE_META } from '../shared/labels.js';
 import { href } from '../shared/router.js';
@@ -21,11 +21,46 @@ const NAV = [
   { path: '/profile', label: 'Profile', icon: 'user' },
 ];
 
-export function Sidebar({ path, query, open, onClose }) {
+export function Sidebar({ path, query, open, compact, onClose }) {
   const data = useData();
   const me = useMe();
   const { openSearch } = useShell();
   const [resetOpen, setResetOpen] = useState(false);
+  const sidebarRef = useRef(null);
+  const wasOpen = useRef(false);
+
+  useEffect(() => {
+    if (!compact) {
+      wasOpen.current = false;
+      return;
+    }
+    if (open) {
+      sidebarRef.current?.querySelector('.sidebar-close')?.focus();
+      wasOpen.current = true;
+    } else if (wasOpen.current) {
+      document.querySelector('.nav-toggle')?.focus();
+      wasOpen.current = false;
+    }
+  }, [compact, open]);
+
+  function handleKeyDown(event) {
+    if (!compact || !open) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+    }
+    if (event.key !== 'Tab') return;
+    const controls = [...sidebarRef.current.querySelectorAll('a[href], button:not([disabled])')];
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  }
 
   const waiting = reviewQueue(data, me.id).length;
   const canReview = reviewsAnywhere(data, me.id);
@@ -35,7 +70,7 @@ export function Sidebar({ path, query, open, onClose }) {
   return (
     <>
       {open && <div className="sidebar-scrim" onClick={onClose} aria-hidden="true" />}
-      <aside className={`sidebar ${open ? 'is-open' : ''}`} aria-label="Sidebar">
+      <aside ref={sidebarRef} className={`sidebar ${open ? 'is-open' : ''}`} aria-label="Sidebar" aria-hidden={compact && !open} inert={compact && !open} onKeyDown={handleKeyDown}>
         <div className="sidebar-top">
           <a href="#/" className="brand-link" onClick={onClose} aria-label="sAI Bridge Builder home">
             <Logo />

@@ -20,13 +20,9 @@ export function ProjectCard({ project, reasons = [] }) {
 
   return (
     <article className="project-card">
-      <div className="project-cover" style={{ background: art.bg }}>
-        <span className="cover-emoji" aria-hidden="true">
-          {art.emoji}
-        </span>
-      </div>
       <div className="project-content">
         <div className="project-top">
+          <span className="card-project-mark" style={{ background: art.bg }} aria-hidden="true">{art.emoji}</span>
           <UserTypeBadge type={owner?.type} />
           {membership && <RoleBadge role={membership.role} />}
         </div>

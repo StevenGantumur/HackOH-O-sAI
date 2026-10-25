@@ -41,7 +41,6 @@ export function HomeMissionCard({ match, bestMatch = false }) {
         </h3>
         <p className="home-card-context">{project.title}</p>
       </div>
-      <p className="home-card-description">{task.description}</p>
       <SkillList skills={task.required_skills} />
       <div className="home-card-meta">
         <DifficultyChip value={task.difficulty} />
@@ -92,7 +91,6 @@ export function HomeProjectCard({ match }) {
           <p className="home-card-context">Led by {owner?.name ?? 'Project team'}</p>
         </div>
       </div>
-      <p className="home-card-description">{project.description}</p>
       <SkillList skills={project.needed_skills} label="Technologies and skills needed" />
       {reasons.length > 0 && (
         <p className="home-match-reason">

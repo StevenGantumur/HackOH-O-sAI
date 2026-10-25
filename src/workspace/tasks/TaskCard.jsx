@@ -42,7 +42,6 @@ export function TaskCard({ task }) {
   const people = [owner, ...reviewers].filter((u, i, all) => u && all.findIndex((x) => x?.id === u.id) === i);
   const image = imageCover(data, task);
   const art = projectArt(project);
-  const showEmoji = !image && isOpenMission(task);
   const artifacts = artifactCount(data, task.id);
   const comments = feedbackCount(data, task.id);
 
@@ -59,23 +58,15 @@ export function TaskCard({ task }) {
           <img src={image} alt="" />
         </div>
       )}
-      {showEmoji && (
-        <div className="task-cover" style={{ background: art.bg }}>
-          <span className="cover-emoji" aria-hidden="true">
-            {art.emoji}
-          </span>
-        </div>
-      )}
-
       <div className="task-card-heading">
         <h3 className="task-title">
           <a className="stretched-link" href={taskHref(task.id)}>
             {task.title}
           </a>
         </h3>
-        <p className="task-project">{project?.title}</p>
+        <p className="task-project"><span className="task-project-mark" style={{ background: art.bg }} aria-hidden="true">{art.emoji}</span>{project?.title}</p>
       </div>
-      {!image && !showEmoji && task.description && <p className="task-desc">{task.description}</p>}
+      {!image && task.description && <p className="task-desc">{task.description}</p>}
 
       <div className="chips">
         <DifficultyChip value={task.difficulty} />

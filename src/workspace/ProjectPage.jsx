@@ -77,6 +77,7 @@ export function ProjectPage({ projectId }) {
   return (
     <Page
       title={project.title}
+      headerClassName="project-page-header"
       actions={
         membership ? (
           <span className="you-are">
@@ -90,13 +91,14 @@ export function ProjectPage({ projectId }) {
         )
       }
     >
-      <div className="project-hero">
+      <div className={`project-hero ${tab.id !== 'overview' ? 'is-compact' : ''}`}>
         <div className="project-hero-art" style={{ background: art.bg }} aria-hidden="true">
           {art.emoji}
         </div>
         <div className="project-hero-text">
           <div className="project-top">
             <UserTypeBadge type={owner?.type} />
+            {membership && <span className="project-hero-role"><RoleBadge role={membership.role} /></span>}
             <span className="muted small">{project.tags.join(', ')}</span>
           </div>
           <p className="project-hero-desc">{project.description}</p>

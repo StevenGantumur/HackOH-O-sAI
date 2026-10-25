@@ -1,13 +1,13 @@
 .profile-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 28px;
+  gap: 20px;
   align-items: start;
 }
 
 .profile-main {
   display: grid;
-  gap: 32px;
+  gap: 24px;
   min-width: 0;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .profile-name {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -54,11 +54,9 @@
 }
 
 .profile-stats > div {
-  min-width: 96px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--c-chrome);
-  border: 1px solid var(--c-line);
+  min-width: 84px;
+  padding: 7px 12px;
+  border-left: 1px solid var(--c-line);
 }
 
 .profile-stats dt {
@@ -67,8 +65,8 @@
 }
 
 .profile-stats dd {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 650;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }

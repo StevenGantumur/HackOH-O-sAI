@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ToastProvider } from '../shared/ui/Toast.jsx';
+import { useMediaQuery } from '../shared/useMediaQuery.js';
 import { closeTask, matchPath, useRoute } from '../shared/router.js';
 import { ShellContext } from './shellContext.js';
 import { Sidebar } from './Sidebar.jsx';
@@ -47,6 +48,7 @@ function renderRoute(path) {
 
 function AuthenticatedApp() {
   const route = useRoute();
+  const compact = useMediaQuery('(max-width: 860px)');
   const [navOpen, setNavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const taskId = route.query.get('task');
@@ -72,8 +74,8 @@ function AuthenticatedApp() {
         </button>
         <div className="app-frame">
           <div className="app">
-            <Sidebar path={route.path} query={route.query} open={navOpen} onClose={() => setNavOpen(false)} />
-            <main className="main" id="main-content" tabIndex={-1}>
+            <Sidebar path={route.path} query={route.query} open={navOpen} compact={compact} onClose={() => setNavOpen(false)} />
+            <main className="main" id="main-content" tabIndex={-1} inert={compact && navOpen}>
               {renderRoute(route.path)}
             </main>
           </div>
