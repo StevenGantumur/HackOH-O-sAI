@@ -1,5 +1,7 @@
+import { loadChatList } from '../api/directMessages.js';
 import { useEffect, useState } from 'react';
 import { href } from '../shared/router.js';
+import { startAutoRefresh } from '../shared/autoRefresh.js';
 
 export function LiveChatList({ account, client, activePersonId }) {
   const [chats, setChats] = useState([]);
@@ -8,32 +10,17 @@ export function LiveChatList({ account, client, activePersonId }) {
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
-    let active = true;
     setLoading(true); setError('');
-    Promise.all([
-      client.from('direct_messages').select('author_id, recipient_id, created_at').order('created_at', { ascending: false }).limit(100),
-      client.from('account_directory').select('id, username'),
-    ]).then(([history, directory]) => {
-      if (!active) return;
-      if (history.error || directory.error) { setError('Could not load your chat list. Please refresh.'); return; }
-      const people = new Map(directory.data.map((person) => [person.id, person]));
-      const grouped = new Map();
-      for (const message of history.data) {
-        const peerId = message.author_id === account.id ? message.recipient_id : message.author_id;
-        if (!grouped.has(peerId)) grouped.set(peerId, { person: people.get(peerId), last: message, count: 0 });
-        grouped.get(peerId).count += 1;
-      }
-      setChats([...grouped.values()].filter((chat) => chat.person));
-    }).catch(() => { if (active) setError('Could not load your chat list. Please refresh.'); })
-      .finally(() => { if (active) setLoading(false); });
-    const refresh = () => setRevision((value) => value + 1);
-    window.addEventListener('teamup-message-saved', refresh);
-    return () => { active = false; window.removeEventListener('teamup-message-saved', refresh); };
+    return startAutoRefresh(() => loadChatList(account.id, client), (chats) => {
+      setChats(chats); setError(''); setLoading(false);
+    }, () => {
+      setError('Could not update your chat list. Retrying automatically…'); setLoading(false);
+    });
   }, [account.id, client, revision]);
 
   return (
     <nav className="teamup-demo-chats" aria-label="Saved demo conversations">
-      <h2>Demo chats <span>Saved in Supabase · registered accounts</span></h2>
+      <h2>Demo chats <span>Saved in Supabase · updates automatically</span></h2>
       {loading && <p role="status">Loading chats…</p>}
       {error && <p role="alert">{error}</p>}
       {!loading && !error && !chats.length && <p>Your conversations appear here after the first saved message.</p>}

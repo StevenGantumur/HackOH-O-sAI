@@ -1,10 +1,12 @@
+import { loadDirectoryPerson } from '../api/profiles.js';
 import { useEffect, useId, useRef, useState } from 'react';
 import { href } from '../shared/router.js';
 import { formatTime } from '../shared/format.js';
 import { Avatar } from '../shared/ui/Avatar.jsx';
 import { Icon } from '../shared/ui/Icon.jsx';
 import { DemoLobby } from '../workspace/channels/DemoLobby.jsx';
-import { loadDirectMessages, sendDirectMessage } from './directMessages.js';
+import { loadDirectMessages, sendDirectMessage } from '../api/directMessages.js';
+import { mergeMessageHistory, startAutoRefresh } from '../shared/autoRefresh.js';
 
 export function LiveConversation({ person, account, client }) {
   const id = useId();
@@ -13,36 +15,40 @@ export function LiveConversation({ person, account, client }) {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
+  const [refreshError, setRefreshError] = useState('');
   const [text, setText] = useState('');
   const [revision, setRevision] = useState(0);
   const [lobbyOpen, setLobbyOpen] = useState(false);
   const sending = useRef(false);
   const log = useRef(null);
+  const followLatest = useRef(true);
   const me = { id: account.id, name: account.username };
   const isSelf = account.id === person.id;
 
   useEffect(() => {
-    let active = true;
+    let loadedRecipient;
+    setLoading(true); setRefreshError('');
     async function load() {
-      setLoading(true); setError('');
-      try {
-        const { data, error: profileError } = await client.from('account_directory')
-          .select('id, username').eq('id', person.id).maybeSingle();
+      if (loadedRecipient === undefined) {
+        const { data, error: profileError } = await loadDirectoryPerson(person.id, client);
         if (profileError) throw new Error('Could not find the recipient. Please retry.');
-        if (!active) return;
-        setRecipient(data);
-        const history = data && data.id !== account.id ? await loadDirectMessages(data.id, client) : [];
-        if (active) setMessages(history);
-      } catch (loadError) { if (active) setError(loadError.message); }
-      finally { if (active) setLoading(false); }
+        loadedRecipient = data;
+      }
+      const history = loadedRecipient && loadedRecipient.id !== account.id ? await loadDirectMessages(loadedRecipient.id, client) : [];
+      return { recipient: loadedRecipient, history };
     }
-    load();
-    return () => { active = false; };
+    return startAutoRefresh(load, ({ recipient, history }) => {
+      setRecipient(recipient);
+      setMessages((previous) => mergeMessageHistory(previous, history));
+      setRefreshError(''); setLoading(false);
+    }, (loadError) => {
+      setRefreshError(`${loadError.message} Retrying automatically…`); setLoading(false);
+    });
   }, [client, person.id, account.id, revision]);
 
   useEffect(() => {
-    if (log.current) log.current.scrollTop = log.current.scrollHeight;
-  }, [messages.length]);
+    if (log.current && followLatest.current) log.current.scrollTop = log.current.scrollHeight;
+  }, [messages.at(-1)?.id]);
 
   async function send(event) {
     event.preventDefault();
@@ -50,7 +56,8 @@ export function LiveConversation({ person, account, client }) {
     sending.current = true; setPending(true); setError('');
     try {
       const saved = await sendDirectMessage({ recipientId: recipient.id, content: text }, client);
-      setMessages((previous) => previous.some((message) => message.id === saved.id) ? previous : [...previous, saved]);
+      followLatest.current = true;
+      setMessages((previous) => mergeMessageHistory(previous, [saved]));
       window.dispatchEvent(new Event('teamup-message-saved'));
       setText('');
     } catch (sendError) { setError(sendError.message); }
@@ -66,12 +73,15 @@ export function LiveConversation({ person, account, client }) {
         <a className="btn btn-ghost btn-sm" href={href('/messages')}>Project channels</a>
         <a className="btn btn-ghost btn-sm" href={href('/team-up')}>Back to Team Up</a>
       </header>
-      <p className="composer-locked">Messages are saved in Supabase. Refresh to load replies. The demo lobby still uses the local browser preview.</p>
+      <p className="composer-locked">Messages are saved in Supabase and update automatically every few seconds. The demo lobby still uses the local browser preview.</p>
       {loading ? <p role="status">Loading conversation…</p> : isSelf ? <p className="composer-locked">This is your account. Choose someone else in Team Up.</p> : !recipient && <p className="composer-locked">This account is unavailable. Refresh the registered-user directory and try again.</p>}
-      {error && <p role="alert">{error}</p>}
+      {(error || refreshError) && <p role="alert">{error || refreshError}</p>}
       <div className="teamup-request-actions"><button className="btn btn-ghost btn-sm" type="button" disabled={pending || loading} onClick={() => setRevision((value) => value + 1)}>Refresh messages</button></div>
-      <div ref={log} className="channel-messages" role="log" aria-label={`Messages with ${person.name}`}>
-        {!loading && recipient && !messages.length && !isSelf && !error && <p className="channel-empty">No messages yet. Say hello to {person.name.split(' ')[0]}.</p>}
+      <div ref={log} className="channel-messages" role="log" aria-label={`Messages with ${person.name}`} onScroll={(event) => {
+        const node = event.currentTarget;
+        followLatest.current = node.scrollHeight - node.scrollTop - node.clientHeight < 80;
+      }}>
+        {!loading && recipient && !messages.length && !isSelf && !error && !refreshError && <p className="channel-empty">No messages yet. Say hello to {person.name.split(' ')[0]}.</p>}
         {messages.map((message) => {
           const fromMe = message.author_id === account.id;
           const author = fromMe ? me : person;

@@ -5,6 +5,7 @@ import { Modal } from '../shared/ui/Dialog.jsx';
 import { Icon } from '../shared/ui/Icon.jsx';
 import { Avatar } from '../shared/ui/Avatar.jsx';
 import { TeamUpButtons } from './TeamUpButtons.jsx';
+import { PrepBank } from './prep/PrepBank.jsx';
 import { DemoProgress } from './DemoProgress.jsx';
 import { ConnectionInbox } from './ConnectionInbox.jsx';
 import { useAuth } from '../auth/AuthProvider.jsx';
@@ -49,12 +50,14 @@ export function Team_Up() {
           <DemoProgress points={SAMPLE_POINTS} sample />
           <div className="teamup-practice-heading"><h2>A little practice, a little confidence.</h2><span>GO AT YOUR PACE</span></div>
           <TeamUpButtons onPractice={() => setPanel('practice')} onCategories={() => setPanel('categories')} />
+          <a className="btn btn-outline" href="#/team-up/demo-preview">Test the shared problem editor</a>
           <a className="teamup-muted" href="#/team-up/supabase">Developer: check Supabase connection</a>
         </div>
         <ConnectionInbox key={me.id} people={people.filter(isSamplePerson).slice(0, 3)} />
       </div>
-      {panel && (
-        <Modal title={panel === 'search' ? 'Find a demo partner' : panel === 'categories' ? 'Choose a practice category' : 'Volunteer scheduling challenge'} description={panel === 'search' ? 'Registered accounts and clearly labeled fictional students. This list does not indicate who is online.' : 'Design preview · no invitations are sent or progress recorded.'} onClose={() => setPanel(null)}>
+      {panel && panel !== 'search' && panel !== 'categories' && <PrepBank category={panel === 'practice' ? '' : panel} onClose={() => setPanel(null)} />}
+      {(panel === 'search' || panel === 'categories') && (
+        <Modal title={panel === 'search' ? 'Find a demo partner' : 'Choose a practice category'} description={panel === 'search' ? 'Registered accounts and clearly labeled fictional students. This list does not indicate who is online.' : 'Try a coding question through your preferred discipline. This demo does not save practice progress.'} onClose={() => setPanel(null)}>
           {panel === 'search' ? (
             <div className="teamup-search-preview">
               <label htmlFor="teamup-partner-search">Search people</label>
@@ -65,15 +68,8 @@ export function Team_Up() {
                 <button className="btn btn-ghost btn-sm" type="button" disabled={directory.status === 'loading'} onClick={directory.reload}>{directory.status === 'loading' ? 'Loading accounts…' : 'Refresh registered accounts'}</button>
               </div>
             </div>
-          ) : panel === 'categories' ? (
-            <div className="teamup-category-options">{['Coding', 'Testing', 'Design', 'Research', 'Communication'].map((category) => <button key={category} type="button" className="btn btn-outline" onClick={() => setPanel(category)}>{category}</button>)}</div>
           ) : (
-            <div className="teamup-practice-prompt">
-              <span className="teamup-session-tag">{panel === 'practice' ? 'Mixed disciplines' : panel} · 30 minutes · Sample problem</span>
-              <h3>Help a fictional nonprofit cover every shift.</h3>
-              <p>Three volunteers are available for two overlapping shifts. Each shift needs two people, and nobody can cover both. Identify the conflict, propose a workable alternative, and explain what you would ask the coordinator.</p>
-              <p>Try a sketch, a test case, a short algorithm, or a clear requirements note. This preview does not save work.</p>
-            </div>
+            <div className="teamup-category-options">{['Coding', 'Testing', 'Design', 'Research', 'Communication'].map((category) => <button key={category} type="button" className="btn btn-outline" onClick={() => setPanel(category)}>{category}</button>)}</div>
           )}
         </Modal>
       )}

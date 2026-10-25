@@ -31,7 +31,7 @@ The Home page has a walkthrough that tracks these steps live.
 Other things to show:
 - **Tasks**: the Board, Table and Calendar views, plus Filter and Sort. Sidebar labels filter by discipline.
 - A project's **Files** tab: version history, line diffs between text versions, and restore.
-- **Coach**: try "Just do it for me".
+- **Coach**: everyone gets a coach for their role, like a software engineering coach for the builder on the bus-stop app. All coaches on a project share the board, the channels and a one-line note about each person, but never the chats themselves. Hints unlock only after you share an attempt. Try "Just do it for me", then "Here’s my attempt…".
 - Switch to **Leila Haddad** to add tasks or post missions, and to see the leader coach flag unassigned and overdue work.
 
 ### Try working together before joining a team (planned — Arnav)
@@ -48,6 +48,8 @@ To play the student and the mentor at the same time, open two windows. The demo 
 
 ### What's real and what's mocked
 
+**Project and mission database schema:** Supabase contains projects, project memberships, tasks, and task contributors, plus derived missions/team views. Each project and mission has one leader and supports multiple collaborators. Field details, permissions, and a rollback-safe SQL test are documented in [`src/workspace/PROJECT_MISSION_SCHEMA.md`](src/workspace/PROJECT_MISSION_SCHEMA.md). This is schema-only so far: the Projects, Tasks, and Missions UIs still use the sample browser store.
+
 **Live Supabase connection check:** Open `#/team-up/supabase` (or the developer link at the bottom of Team Up). It calls the project's public `GET /auth/v1/settings` endpoint with the browser key and shows email/sign-up availability. This verifies the live Auth connection; it does not sign in, persist app data, or test database policies.
 
 **Site authentication:** Every app page requires a verified Supabase account, confirmed email, and completed username. Signed-out visitors see the sign-in screen, including when opening a deep link. Choose **Create an account** for email, username, and password fields; confirm the email and return to sign in. Passwords are handled only by Supabase Auth. `account_profiles` stores the matching Auth ID, username, and email, with owner-only access. Existing accounts without a username finish setup before entering. The account menu provides Sign out; switching sample personas does not change your real account. Authentication is per browser tab.
@@ -56,14 +58,14 @@ To play the student and the mentor at the same time, open two windows. The demo 
 
 **Live direct messages:** In Team Up, choose **Find a demo partner**, then **Chat** beside a registered username. Messages reference `account_profiles` directly; no sample-persona linking is required. **Send message** waits for Supabase to confirm the save, then displays it. Refresh loads replies and the latest 100 messages. Fictional students open a labeled local conversation preview; their messages are not delivered. Existing legacy persona links and message data are retained. Project channels, requests, graph data, and lobby presence still use their labeled mocks.
 
-For local setup, copy `.env.example` to `.env`, set `VITE_SUPABASE_URL` to the project API origin (`https://<project-ref>.supabase.co`), and set `VITE_SUPABASE_PUBLISHABLE_KEY` (preferred) or `VITE_SUPABASE_ANON_KEY` (legacy). Restart `npm run dev` after changing environment variables. `src/shared/supabase.js` validates the config, provides a single lazy Supabase client, and performs the read-only check. No secret/service-role key belongs in these variables.
+For local setup, copy `.env.example` to `.env`, set `VITE_SUPABASE_URL` to the project API origin (`https://<project-ref>.supabase.co`), and set `VITE_SUPABASE_PUBLISHABLE_KEY` (preferred) or `VITE_SUPABASE_ANON_KEY` (legacy). Restart `npm run dev` after changing environment variables. `src/api/client.js` validates the config, provides a single lazy Supabase client, while `src/api/connection.js` performs the read-only check. No secret/service-role key belongs in these variables.
 
 | Area | Status |
 |---|---|
 | UI, routing, permissions, async pending and error states | Built |
 | Data | Direct chats use `direct_messages` linked to `account_profiles`; public people use `account_directory`, all under RLS. Project data remains in the `// MOCK:` browser store |
 | Sign-in | All pages require Supabase Auth and username setup. The sample-persona switcher controls only mock project views |
-| Role coach | Canned replies (`src/agents/mockCoach.js`) that follow the help ladder. No model is called |
+| Role coaches | Canned replies (`src/agents/mockCoach.js`) that follow the help ladder and read your attempts with simple checks. Team notes are written from the board and your task, never from what you typed. No model is called |
 | File storage | Uploads up to 2 MB are kept in the browser |
 | Notifications | In-app only, derived from activity. No email or push |
 | People, projects, feedback | Fictional sample data, labelled as sample in the UI |
@@ -83,3 +85,5 @@ src/agents/             llm.js (the only model entry point), prompts/, mock coac
 ```
 
 Moving to Supabase means re-implementing the functions in `src/shared/mockDb.js` with supabase-js (or Edge Functions for privileged steps) and loading the snapshot from the database. Components call `store.claimTask(...)` and similar, so they don't need to change.
+
+Supabase request code lives in `src/api/`; see [the API helper guide](src/api/README.md) for the files and their callers. Components and providers import these helpers instead of making direct SDK requests.

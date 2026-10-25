@@ -8,6 +8,8 @@
 
 **Hard deadline:** 10:00 AM Sun Oct 25, 2026 (EDT, per event brief). **Code freeze:** TBD.
 
+**Open problems:** read §10 before starting new work. It lists what is still missing or broken before judging.
+
 **Project direction:** Merge the existing cross-disciplinary project collaboration platform with **Bridge Missions**: small, accessible contributions to larger projects, human feedback, and evidence-based growth. Bridge Missions is an extension of the existing project/task model, not a replacement.
 
 **User-confirmed matching direction (Arnav):** **“Try working together” before joining a team.** Two students try a 30-minute collaborative challenge related to an actual project, exchange specific peer feedback, and then choose whether to continue together as a project team. Compatibility comes from the shared experience rather than listed-skill matching. Beginners can contribute through testing, design, research, or communication as well as code. This confirms product direction; new persistence contracts remain proposed until team sign-off under rule 2.
@@ -162,6 +164,8 @@ Feedback      id, submission_id, reviewer_id, comments, rubric?: object, created
 
 **Approved account profile and site authentication (2026-10-24, Arnav's request):** `account_profiles(id: UUID → auth.users, username: unique lowercase text, email: text)` is separate from the sample academic Profile model. Passwords and password hashes belong only to Supabase Auth, never to this table. A private Auth trigger creates the row on signup and synchronizes verified Auth email changes. Existing accounts may have a null username until profile setup; complete accounts require a 3–24 character username starting with a letter and containing letters, digits, or underscores. Profile RLS allows only self reads and self username updates; email/ID writes and all anonymous access are denied. SQL: `src/auth/profile-schema.sql`.
 
+**Approved project/mission database extension (2026-10-24, Arnav's request):** Supabase now has `projects`, `project_memberships`, `tasks`, and `task_contributors`, plus read-only `missions`, `project_team`, and `mission_team` views. `projects.owner_id` is the single required leader and an implicit member; no second LEADER membership is stored. Projects also have description (bio), tags, needed_roles/skills, status draft|active|completed|archived, visibility public|private, optional starts_at/deadline, and server timestamps. Memberships use existing non-leader roles and a composite project/user primary key. Tasks retain the existing shared task model plus required `leader_id`, optional claimant `owner_id`, role, mission time/difficulty/skills/deliverable/review criteria, and timestamps. Mission leaders/owners/contributors must be working members of the same project. Many contributors are stored in task_contributors; one required leader is derived from tasks.leader_id. Missions are tasks with estimated_minutes, not a duplicate entity. These table fields supersede the earlier proposed status of their matching Task fields above; Submission/Feedback persistence remains proposed. See `src/workspace/PROJECT_MISSION_SCHEMA.md` and its companion SQL for exact fields, grants, constraints, and tested access behavior. Existing frontend project/mission data remains mocked until its adapter is migrated.
+
 ### 5.2 Roles enum
 
 - **`LEADER`** (confirmed): the project creator by default.
@@ -201,9 +205,9 @@ generateAgentReply({ role, userId, projectId, messages, context }) -> { content 
 
 **TBD.** Do not invent REST endpoints unless the selected architecture requires them. React can use approved Supabase client queries under RLS, while operations involving privileged actions or LLM keys must run server-side (e.g., Edge Functions). List approved database operations or `METHOD /path → purpose` here as built. No unapproved table writes or policies.
 
-**Implemented connection check (2026-10-24):** The frontend route `#/team-up/supabase` calls Supabase's existing public `GET /auth/v1/settings` endpoint to verify browser-key connectivity and display email/sign-up availability. `src/shared/supabase.js` centralizes configuration and a lazy `supabase-js` client. It uses `VITE_SUPABASE_URL` plus `VITE_SUPABASE_PUBLISHABLE_KEY` (preferred) or `VITE_SUPABASE_ANON_KEY` (legacy), saved locally in gitignored `.env`. This check creates no schema, writes no data, performs no login, and does not certify RLS. Other features remain mock-backed except the approved direct messaging integration below.
+**Implemented connection check (2026-10-24):** The frontend route `#/team-up/supabase` calls Supabase's existing public `GET /auth/v1/settings` endpoint to verify browser-key connectivity and display email/sign-up availability. `src/api/client.js` centralizes configuration and a lazy `supabase-js` client. It uses `VITE_SUPABASE_URL` plus `VITE_SUPABASE_PUBLISHABLE_KEY` (preferred) or `VITE_SUPABASE_ANON_KEY` (legacy), saved locally in gitignored `.env`. This check creates no schema, writes no data, performs no login, and does not certify RLS. Other features remain mock-backed except the approved direct messaging integration below.
 
-**Approved and implemented messaging operations:** Supabase Auth signup/sign-in/verification/sign-out; participant-filtered `SELECT direct_messages` (latest 100) and Auth-author `INSERT direct_messages`, returning the server row. `MessagingAuth.jsx` passes the authenticated account profile directly; no fictional persona claim is required. `LiveConversation.jsx` disables pending submits, preserves failed drafts, and provides explicit refresh for replies. `LiveChatList.jsx` resolves people through `account_directory`. Auth sessions remain per tab. Fictional people use explicitly labeled local-only `SampleConversation.jsx` previews, never a real Supabase insert. Invitations, lobby presence, project channels, and progress remain mocked/local. No Realtime message delivery is claimed.
+**Approved and implemented messaging operations:** Supabase Auth signup/sign-in/verification/sign-out; participant-filtered `SELECT direct_messages` (latest 100) and Auth-author `INSERT direct_messages`, returning the server row. `MessagingAuth.jsx` passes the authenticated account profile directly; no fictional persona claim is required. `LiveConversation.jsx` disables pending submits, preserves failed drafts, and polls for replies every three seconds while visible, with manual refresh retained. `LiveChatList.jsx` resolves people through `account_directory`. Auth sessions remain per tab. Fictional people use explicitly labeled local-only `SampleConversation.jsx` previews, never a real Supabase insert. Invitations, lobby presence, project channels, and progress remain mocked/local. No Realtime message delivery is claimed.
 
 **Global authentication:** `src/auth/AuthProvider.jsx` verifies users through Supabase Auth and loads their private account profile. Every application page, sidebar, search palette, and task drawer renders only after verification, email confirmation, and username setup. Signed-out visitors see `AuthPage.jsx`; signup collects email, username, and password, while login uses email and password. Sign-out unmounts the protected app. `UserMenu.jsx` identifies the real username separately from its sample-persona switcher. `MessagingAuth.jsx` reuses the verified account directly; it does not implement a second login or require a sample identity. Preserve the requested hash route through sign-in. Frontend gating supplements database RLS; sample academic/workspace data is still mock-backed.
 
@@ -413,3 +417,48 @@ A change is done only when:
 - Many coding agents read `AGENTS.md` at the repo root automatically.
 - If yours doesn't, point its own instructions file at this one, e.g. `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, or `.cursor/rules`. Check your tool's docs for the exact name.
 - Otherwise, paste this file at the start of each session.
+
+---
+
+## 10. Open problems before judging (audit, 2026-10-24 18:40 EDT)
+
+Checked against the Honda Bridge Builder brief, the HackOHI/O judging guide, and §6.7 / §6.8 of this file. On `main` at `e83eb2b`, the 34 unit tests, the build, and a 20-step browser click-through of the §6.7 flow all pass with no console errors. Everything below is still open. Delete an item when it's fixed.
+
+**Submission (blocking)**
+- No video yet. It's due **10:00 AM EDT Sun Oct 25** through the Discord form: MP4, 500 MB max, about 3 minutes, showing the key features and the technical challenges we overcame.
+- No hosted demo link. Honda asks for a link to the demo or the code. The repo is public, but nothing is deployed. The app runs fully in the browser, so the `npm run build` output (`dist/`) can go on any static host.
+- HackOHI/O scores 1–5 on Innovation, Curiosity, Communication, Breadth & Complexity, Impact and Challenge Navigation. Honda also judges Problem Solving, Creativity, Clarity and Completeness.
+
+**Gaps a judge will hit**
+- **Team Up (second sidebar item) is a design preview only.** None of §6.8 steps 2–6 exist: no timer, shared work, recorded contributions, peer feedback or "continue together". "Accept preview" saves nothing, the lobby says the challenge isn't connected yet, and the chart shows sample numbers. Finish a minimal loop or hide it from the nav before recording. Honda: "One complete flow beats five half-built features."
+- **No real multi-user.** All project data lives in one browser's localStorage, and the demo's "two people" are one person switching personas. §6.7 step 2 ("persists to Supabase") fails.
+- **Trust hole.** The persona switcher lets anyone act as Grace and approve their own work. The store blocks self-review, but nothing proves who you are. Sign-in on `30-minute-demo` doesn't fix this, because the switcher still controls reviews.
+- **The coach is canned replies, not AI** (`AGENT_MODE = 'mock'` in `src/agents/llm.js`). Either pitch it honestly as coaching rules that are ready for a model behind `generateAgentReply`, or wire a real model server-side (§2, §5.4). Don't call the current version AI.
+- The README says Try Working Together "is not implemented yet" while Team Up is in the nav. Make them agree.
+
+**Honda ladder coverage**
+- Rung 1, Look around: partial. No showcase of finished work or "what other students learned".
+- Rung 2, Show up: **missing.** No public questions, topic groups or office hours. Channels are members-only.
+- Rung 3, Try something small: half. Missions work, but peers can't give feedback; only LEADER and MENTOR members can review.
+- Rung 4, Join a project: done.
+- Rung 5, Give back: weak. Help given (reviews written) never shows on any profile. `feedbackGivenBy` exists, but only the Reviews page uses it. There's no path from student to reviewer or mentor.
+- Empty room: no product answer; the sample data hides the problem. Have a pitch answer ready.
+- Mentor time: students see mission minutes, but mentors get no time estimate for a review and no hour-long format such as office hours.
+- Momentum: the Home walkthrough just ends after the evidence card. Nothing suggests the next step.
+- "What one group learns helps the next": nothing covers this.
+
+**Branch `30-minute-demo`: do not merge as is**
+- Commit `ddc24c1` ("premerge") contains unresolved conflict markers in `src/profiles/ProfilePage.jsx` (line 74) and `DECISIONS.md`, so `npm run build` fails. Its 54 unit tests pass.
+- It commits `playwright-report/index.html` and `.serena/cache/*.pkl`, and adds the `supabase` CLI as a runtime dependency (rule 5; it belongs in devDependencies, if anywhere).
+- It puts every page behind a confirmed-email sign-up, so a judge opening a link hits a sign-up wall. Keep a demo path that needs no sign-in.
+
+**Suggested order with the time left**
+1. Script and record the video around one flow: claim a mission → submit → human review → evidence card, with the coach as the learning moment. Upload well before 10:00.
+2. Hide or finish Team Up.
+3. Deploy `dist/` and put the link in the README and the video.
+4. Fix `30-minute-demo` before any merge.
+5. If time allows: show help given on profiles, add a next-step card after the evidence card, and prepare Q&A answers (Is it real AI? Can two laptops use it? What stops self-approval? Why would the first 50 students come? How does it scale?).
+
+**API organization (user-requested):** All frontend Supabase SDK calls and the Auth settings request live under `src/api/`. React components/providers call these helpers; keep local mock operations in `src/shared/mockDb.js`. See `src/api/README.md`. This reorganization does not change database contracts or connect the unfinished project/mission Join buttons.
+
+**Shared demo document (user-requested):** When the existing browser-local lobby detects both participants, it replaces the waiting view with a shared plain-text editor. Edits merge through BroadcastChannel; disconnect pauses editing and rejoin recovers a draft from the remaining tab. This is a labeled same-browser preview, not Google Docs or Supabase persistence. See `src/workspace/channels/SHARED_DEMO_DOCUMENT.md`.

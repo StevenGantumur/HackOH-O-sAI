@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadDirectMessages, sendDirectMessage } from './directMessages.js';
+import { loadChatList, loadDirectMessages, sendDirectMessage } from './directMessages.js';
 
 const author = '00000000-0000-4000-8000-000000000001';
 const recipient = '00000000-0000-4000-8000-000000000002';
@@ -50,4 +50,24 @@ test('unauthenticated, invalid recipient, self-message, and empty message do not
 
 test('a database failure is surfaced instead of reported as a sent message', async () => {
   await assert.rejects(sendDirectMessage({ recipientId: recipient, content: 'Hello' }, fakeClient({ error: { code: '42501' } })), /not saved/);
+});
+
+test('chat list groups both message directions and keeps the latest message per known peer', async () => {
+  const newest = { author_id: recipient, recipient_id: author, created_at: '2026-10-24T22:00:00Z' };
+  const history = [newest, { author_id: author, recipient_id: recipient }, { author_id: author, recipient_id: 'unavailable' }];
+  const client = { from(table) {
+    if (table === 'account_directory') return { select: async () => ({ data: [{ id: recipient, username: 'Sample' }], error: null }) };
+    const query = { select: () => query, order: () => query, limit: async () => ({ data: history, error: null }) };
+    return query;
+  } };
+  assert.deepEqual(await loadChatList(author, client), [{ person: { id: recipient, username: 'Sample' }, last: newest, count: 2 }]);
+});
+
+test('chat list rejects failed reads instead of treating them as an empty inbox', async () => {
+  const client = { from(table) {
+    if (table === 'account_directory') return { select: async () => ({ data: [], error: null }) };
+    const query = { select: () => query, order: () => query, limit: async () => ({ data: null, error: { code: '42501' } }) };
+    return query;
+  } };
+  await assert.rejects(loadChatList(author, client), /Could not load your chat list/);
 });

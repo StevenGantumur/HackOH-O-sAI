@@ -5,7 +5,7 @@ import { scoreMission, scoreProject } from '../discovery/score.js';
 import { DOER_ROLES } from '../shared/contracts.js';
 import { ROLE_META, projectArt } from '../shared/labels.js';
 import { profileHeadline } from '../shared/people.js';
-import { updateQuery, useRoute } from '../shared/router.js';
+import { href, updateQuery, useRoute } from '../shared/router.js';
 import { getProfile, getProject, getUser, isOpenMission, membersOf, membershipOf, tasksInProject } from '../shared/selectors.js';
 import { store, useData, useMe } from '../shared/store.js';
 import { useAction } from '../shared/useAction.js';
@@ -15,6 +15,7 @@ import { Modal } from '../shared/ui/Dialog.jsx';
 import { Field, FormError } from '../shared/ui/Field.jsx';
 import { Icon } from '../shared/ui/Icon.jsx';
 import { MissionCard } from '../missions/MissionCard.jsx';
+import { TeamNotesList } from '../agents/TeamContext.jsx';
 import { ProjectChannels } from './channels/ChannelsLayout.jsx';
 import { AddTaskModal } from './tasks/AddTaskModal.jsx';
 import { TaskBoard } from './tasks/TaskBoard.jsx';
@@ -222,6 +223,17 @@ function ProjectOverview({ project, membership }) {
             })}
           </ul>
         </section>
+        {membership && (
+          <section className="card side-card">
+            <div className="section-head">
+              <h2 className="section-title">What the coaches know</h2>
+              <a className="text-link" href={href('/coach', { project: project.id })}>
+                Your coach
+              </a>
+            </div>
+            <TeamNotesList projectId={project.id} allowRemove={false} />
+          </section>
+        )}
       </aside>
     </div>
   );

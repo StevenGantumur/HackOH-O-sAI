@@ -77,5 +77,10 @@ export const feedbackGivenBy = (data, userId) => data.feedback.filter((f) => f.r
 export const channelsInProject = (data, projectId) => data.channels.filter((c) => c.project_id === projectId);
 export const messagesIn = (data, channelId) => data.messages.filter((m) => m.channel_id === channelId).sort(byOldest);
 
+const byUpdated = (a, b) => time(b.updated_at) - time(a.updated_at);
+export const teamNotesIn = (data, projectId) => (data.teamNotes ?? []).filter((n) => n.project_id === projectId).sort(byUpdated);
+export const teamNoteOf = (data, userId, projectId) =>
+  (data.teamNotes ?? []).find((n) => n.author_id === userId && n.project_id === projectId) ?? null;
+
 export const agentThread = (data, { userId, projectId, role }) =>
   data.agentMessages.filter((m) => m.user_id === userId && m.project_id === projectId && m.role === role).sort(byOldest);

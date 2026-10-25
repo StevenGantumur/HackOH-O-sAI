@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { getSupabase } from '../shared/supabase.js';
+import { getSupabase } from '../api/client.js';
+import { getCurrentUser, signOutAccount, subscribeToAuth } from '../api/auth.js';
+import { loadAccountProfile } from '../api/profiles.js';
 import { resolveAccountAccess } from './accountAccess.js';
 
 const AuthContext = createContext(null);
@@ -18,7 +20,7 @@ export function AuthProvider({ children }) {
     const current = ++generation.current;
     setState({ status: 'loading', user: null, profile: null, error: '' });
     try {
-      const { data, error } = await client.auth.getUser();
+      const { data, error } = await getCurrentUser(client);
       if (!alive.current || current !== generation.current) return;
       if (error) {
         if (error.name === 'AuthSessionMissingError' || error.status === 401 || error.status === 403) {
@@ -32,7 +34,7 @@ export function AuthProvider({ children }) {
         setState({ status: resolveAccountAccess(user, null), user, profile: null, error: '' });
         return;
       }
-      const result = await client.from('account_profiles').select('id, username, email').eq('id', user.id).maybeSingle();
+      const result = await loadAccountProfile(user.id, client);
       if (!alive.current || current !== generation.current) return;
       if (result.error) throw new Error('Could not load your account profile. Retry to continue.');
       if (!result.data) throw new Error('Your account profile is missing. Please contact the project administrator.');
@@ -45,7 +47,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!client) return;
     alive.current = true;
-    const { data } = client.auth.onAuthStateChange((event) => {
+    const unsubscribe = subscribeToAuth((event) => {
       if (!alive.current || event === 'INITIAL_SESSION') return;
       if (event === 'SIGNED_OUT') {
         generation.current += 1;
@@ -54,13 +56,13 @@ export function AuthProvider({ children }) {
         // Avoid calling other Auth methods while inside Supabase's Auth callback.
         queueMicrotask(() => { if (alive.current) refresh(); });
       }
-    });
+    }, client);
     refresh();
-    return () => { alive.current = false; generation.current += 1; data.subscription.unsubscribe(); };
+    return () => { alive.current = false; generation.current += 1; unsubscribe(); };
   }, [client, refresh]);
 
   async function signOut() {
-    const { error } = await client.auth.signOut({ scope: 'local' });
+    const { error } = await signOutAccount(client);
     if (error) throw new Error('Could not sign out. Please retry.');
     generation.current += 1;
     setState({ status: 'signed_out', user: null, profile: null, error: '' });
